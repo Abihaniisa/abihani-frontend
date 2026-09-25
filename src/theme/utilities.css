@@ -96,3 +96,61 @@
   overflow: hidden;
   text-overflow: ellipsis;
 }
+
+/* ABIHANI — Stage 2 layout helpers */
+
+.app-viewport {
+  position: relative;
+  width: 100%;
+  max-width: 460px;
+  margin: 0 auto;
+  min-height: 100dvh;
+  background: var(--ink);
+  overflow: hidden;
+}
+
+.app-scroll {
+  position: absolute;
+  inset: 0;
+  overflow-y: auto;
+  overscroll-behavior-y: contain;
+}
+
+.app-scroll-with-nav {
+  padding-bottom: calc(var(--safe-bottom) + 92px);
+}
+
+.placeholder-screen {
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--bone);
+  font-size: 20px;
+  font-weight: 700;
+  letter-spacing: -0.3px;
+}
+
+.push-in-right {
+  animation: abihaniPushInRight 340ms cubic-bezier(0.32, 0.72, 0, 1) both;
+}
+
+.push-out-left {
+  animation: abihaniPushOutLeft 340ms cubic-bezier(0.32, 0.72, 0, 1) both;
+}
+
+.push-in-left {
+  animation: abihaniPushInLeft 340ms cubic-bezier(0.32, 0.72, 0, 1) both;
+}
+
+.push-out-right {
+  animation: abihaniPushOutRight 340ms cubic-bezier(0.32, 0.72, 0, 1) both;
+}
+
+.crossfade-in {
+  animation: abihaniCrossfadeIn 200ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.crossfade-out {
+  animation: abihaniCrossfadeOut 200ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}

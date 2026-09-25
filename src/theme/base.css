@@ -113,3 +113,85 @@ p {
     scroll-behavior: auto !important;
   }
 }
+
+/* ABIHANI — Push transitions between screens */
+
+@keyframes abihaniPushInRight {
+  from {
+    opacity: 0;
+    transform: translateX(100%);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes abihaniPushOutLeft {
+  from {
+    opacity: 1;
+    transform: translateX(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateX(-100%);
+  }
+}
+
+@keyframes abihaniPushInLeft {
+  from {
+    opacity: 0;
+    transform: translateX(-100%);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes abihaniPushOutRight {
+  from {
+    opacity: 1;
+    transform: translateX(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateX(100%);
+  }
+}
+
+@keyframes abihaniCrossfadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes abihaniCrossfadeOut {
+  from { opacity: 1; }
+  to { opacity: 0; }
+}
+
+/* Utility classes ready to be applied by screens */
+
+.push-in-right {
+  animation: abihaniPushInRight 340ms cubic-bezier(0.32, 0.72, 0, 1) both;
+}
+
+.push-out-left {
+  animation: abihaniPushOutLeft 340ms cubic-bezier(0.32, 0.72, 0, 1) both;
+}
+
+.push-in-left {
+  animation: abihaniPushInLeft 340ms cubic-bezier(0.32, 0.72, 0, 1) both;
+}
+
+.push-out-right {
+  animation: abihaniPushOutRight 340ms cubic-bezier(0.32, 0.72, 0, 1) both;
+}
+
+.crossfade-in {
+  animation: abihaniCrossfadeIn 200ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.crossfade-out {
+  animation: abihaniCrossfadeOut 200ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
