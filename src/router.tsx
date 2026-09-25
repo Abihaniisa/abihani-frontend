@@ -162,7 +162,7 @@ export default function Router() {
           tab={feedTab}
           onTabChange={setFeedTab}
           onSearch={() => push('discover')}
-          onWordmark={() => push('support')}
+          onWordmark={() => {}}
         />
       )}
 
