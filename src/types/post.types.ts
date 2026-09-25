@@ -1,0 +1,22 @@
+export type Post = {
+  id: string;
+  ownerId: string;
+  images: string[];
+  title: string;
+  description: string;
+  price: number;
+  stock: number | undefined;
+  shipFrom: string;
+  delivery: Record<string, number>;
+  hashtags: string[];
+  likes: number;
+  comments: number;
+  shares: number;
+  saves: number;
+  views: number;
+  watchTimeFraction: number;
+  followerCount: number;
+  verified: boolean;
+  hasOpenReport: boolean;
+  createdAt: number;
+};
