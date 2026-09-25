@@ -267,8 +267,8 @@ export const MOCK_POSTS: Post[] = [
   },
 ];
 
-const commentUser = (name: string, avatar: string, verified = false) => ({
-  id: `u_${name.toLowerCase().replace(/\s/g, '')}`,
+const cu = (name: string, avatar: string, verified = false) => ({
+  id: `u_${name.toLowerCase().replace(/[^a-z0-9]/g, '')}`,
   name,
   avatarUrl: avatar,
   verified,
@@ -279,9 +279,9 @@ export const MOCK_COMMENTS: Record<string, Comment[]> = {
     {
       id: 'c1',
       postId: 'p1',
-      user: commentUser(
+      user: cu(
         'Blessing A.',
-        'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=100&q=80',
+        'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=200&q=80',
       ),
       time: '2h',
       text: 'This bag is stunning. Is it real leather?',
@@ -292,9 +292,9 @@ export const MOCK_COMMENTS: Record<string, Comment[]> = {
         {
           id: 'c1r1',
           postId: 'p1',
-          user: commentUser(
+          user: cu(
             'Fakhayr Collections',
-            'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=100&q=80',
+            'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=200&q=80',
             true,
           ),
           time: '1h',
@@ -309,9 +309,9 @@ export const MOCK_COMMENTS: Record<string, Comment[]> = {
     {
       id: 'c2',
       postId: 'p1',
-      user: commentUser(
+      user: cu(
         'Chidi O.',
-        'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=100&q=80',
+        'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=200&q=80',
       ),
       time: '45m',
       text: 'Bought one last week. Quality is top tier.',
@@ -325,9 +325,9 @@ export const MOCK_COMMENTS: Record<string, Comment[]> = {
     {
       id: 'c3',
       postId: 'p2',
-      user: commentUser(
+      user: cu(
         'Khalid Y.',
-        'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=100&q=80',
+        'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=200&q=80',
       ),
       time: '3h',
       text: 'Size 44 available?',
@@ -338,9 +338,9 @@ export const MOCK_COMMENTS: Record<string, Comment[]> = {
         {
           id: 'c3r1',
           postId: 'p2',
-          user: commentUser(
+          user: cu(
             'Kojo Sneaks',
-            'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&q=80',
+            'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&q=80',
             true,
           ),
           time: '2h',
@@ -351,6 +351,20 @@ export const MOCK_COMMENTS: Record<string, Comment[]> = {
           replies: [],
         },
       ],
+    },
+    {
+      id: 'c4',
+      postId: 'p2',
+      user: cu(
+        'Ngozi E.',
+        'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=200&q=80',
+      ),
+      time: '1h',
+      text: 'Beautiful pair. Do you ship to Abuja?',
+      likes: 8,
+      verifiedPurchase: false,
+      seller: false,
+      replies: [],
     },
   ],
   p3: [],
