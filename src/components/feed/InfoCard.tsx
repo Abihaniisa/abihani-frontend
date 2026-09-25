@@ -1,15 +1,26 @@
 import { useState } from 'react';
-import Icon from '../common/Icon';
 import type { Post } from '../../types/post.types';
 
 type InfoCardProps = {
   post: Post;
   onSellerTap: () => void;
   onBuy: () => void;
+  onOpenChange?: (open: boolean) => void;
 };
 
-export default function InfoCard({ post, onSellerTap, onBuy }: InfoCardProps) {
-  const [open, setOpen] = useState(false);
+export default function InfoCard({
+  post,
+  onSellerTap,
+  onBuy,
+  onOpenChange,
+}: InfoCardProps) {
+  const [open, setOpenState] = useState(false);
+
+  function setOpen(next: boolean) {
+    setOpenState(next);
+    onOpenChange?.(next);
+  }
+
   const outOfStock = post.stock !== undefined && post.stock <= 0;
   const canBuy = post.price > 0 && !outOfStock;
 
@@ -30,21 +41,15 @@ export default function InfoCard({ post, onSellerTap, onBuy }: InfoCardProps) {
         overflow: 'hidden',
       }}
     >
-      <button
-        type="button"
-        onClick={() => setOpen((v) => !v)}
+      <div
+        onClick={() => setOpen(!open)}
         style={{
           display: 'flex',
           alignItems: 'center',
-          gap: 11,
-          padding: '11px 13px',
-          width: '100%',
-          background: 'none',
-          border: 'none',
+          gap: 10,
+          padding: '9px 12px',
           cursor: 'pointer',
-          fontFamily: 'inherit',
-          textAlign: 'left',
-          color: 'inherit',
+          userSelect: 'none',
         }}
       >
         <span
@@ -53,28 +58,34 @@ export default function InfoCard({ post, onSellerTap, onBuy }: InfoCardProps) {
             onSellerTap();
           }}
           style={{
-            width: 38,
-            height: 38,
+            width: 36,
+            height: 36,
             borderRadius: '50%',
             backgroundImage: `url('${post.seller.avatarUrl ?? ''}')`,
             backgroundSize: 'cover',
             backgroundPosition: 'center',
             flexShrink: 0,
             border: '1.5px solid rgba(245, 240, 230, 0.16)',
+            cursor: 'pointer',
           }}
         />
-        <span style={{ flex: 1, minWidth: 0 }}>
-          <span
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div
+            onClick={(e) => {
+              e.stopPropagation();
+              onSellerTap();
+            }}
             style={{
               display: 'flex',
               alignItems: 'center',
-              gap: 6,
-              marginBottom: 3,
+              gap: 5,
+              marginBottom: 2,
+              cursor: 'pointer',
             }}
           >
             <span
               style={{
-                fontSize: 16,
+                fontSize: 15.5,
                 fontWeight: 700,
                 color: 'var(--bone)',
                 letterSpacing: '-0.3px',
@@ -87,9 +98,10 @@ export default function InfoCard({ post, onSellerTap, onBuy }: InfoCardProps) {
             </span>
             {post.seller.verified && (
               <span
+                aria-hidden="true"
                 style={{
-                  width: 17,
-                  height: 17,
+                  width: 15,
+                  height: 15,
                   borderRadius: '50%',
                   background: 'var(--crimson)',
                   display: 'inline-flex',
@@ -97,16 +109,18 @@ export default function InfoCard({ post, onSellerTap, onBuy }: InfoCardProps) {
                   justifyContent: 'center',
                   flexShrink: 0,
                   color: '#FFF',
+                  fontSize: 9,
+                  fontWeight: 900,
+                  lineHeight: 1,
                 }}
               >
-                <Icon name="check" size={10} strokeWidth={4} />
+                ✓
               </span>
             )}
-          </span>
-          <span
+          </div>
+          <div
             style={{
-              display: 'block',
-              fontSize: 13,
+              fontSize: 12.5,
               fontWeight: 500,
               color: 'var(--bone-dim)',
               letterSpacing: '-0.1px',
@@ -116,9 +130,10 @@ export default function InfoCard({ post, onSellerTap, onBuy }: InfoCardProps) {
             }}
           >
             {post.title}
-          </span>
-        </span>
+          </div>
+        </div>
         <span
+          aria-hidden="true"
           style={{
             color: 'var(--bone-dim)',
             flexShrink: 0,
@@ -127,7 +142,6 @@ export default function InfoCard({ post, onSellerTap, onBuy }: InfoCardProps) {
             display: 'flex',
           }}
         >
-          <Icon name="check" size={16} strokeWidth={0} />
           <svg
             viewBox="0 0 24 24"
             width={16}
@@ -141,7 +155,7 @@ export default function InfoCard({ post, onSellerTap, onBuy }: InfoCardProps) {
             <polyline points="6 9 12 15 18 9" />
           </svg>
         </span>
-      </button>
+      </div>
 
       <div
         style={{
@@ -152,7 +166,7 @@ export default function InfoCard({ post, onSellerTap, onBuy }: InfoCardProps) {
       >
         <div
           style={{
-            padding: '12px 13px 13px',
+            padding: '12px 12px 13px',
             borderTop: '1px solid rgba(245, 240, 230, 0.10)',
           }}
         >
@@ -215,7 +229,7 @@ export default function InfoCard({ post, onSellerTap, onBuy }: InfoCardProps) {
           >
             <span
               style={{
-                fontSize: 20,
+                fontSize: 19,
                 fontWeight: 800,
                 color: 'var(--gold)',
                 letterSpacing: '-0.5px',
@@ -226,25 +240,33 @@ export default function InfoCard({ post, onSellerTap, onBuy }: InfoCardProps) {
 
             <button
               type="button"
-              onClick={onBuy}
+              onClick={(e) => {
+                e.stopPropagation();
+                if (canBuy) onBuy();
+              }}
               disabled={!canBuy}
               style={{
                 display: 'flex',
                 alignItems: 'center',
                 gap: 7,
-                padding: '11px 20px',
-                background: canBuy ? 'var(--crimson)' : 'rgba(245, 240, 230, 0.12)',
+                padding: '10px 18px',
+                background: canBuy
+                  ? 'var(--crimson)'
+                  : 'rgba(245, 240, 230, 0.12)',
                 color: canBuy ? '#FFF' : 'var(--bone-faint)',
                 border: 'none',
                 borderRadius: 40,
-                fontSize: 14,
+                fontSize: 13.5,
                 fontWeight: 700,
                 fontFamily: 'inherit',
                 letterSpacing: '-0.2px',
                 cursor: canBuy ? 'pointer' : 'not-allowed',
-                boxShadow: canBuy ? '0 8px 22px rgba(196, 30, 58, 0.42)' : 'none',
+                boxShadow: canBuy
+                  ? '0 8px 22px rgba(196, 30, 58, 0.42)'
+                  : 'none',
                 whiteSpace: 'nowrap',
                 flexShrink: 0,
+                transition: 'transform .15s var(--spring), filter .15s var(--ease)',
               }}
             >
               {outOfStock ? 'Sold out' : 'Buy now'}
