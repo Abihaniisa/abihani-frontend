@@ -1,0 +1,55 @@
+export const BUTTONS = {
+  CONTINUE: 'Continue',
+  CANCEL: 'Cancel',
+  CONFIRM: 'Confirm',
+  SAVE: 'Save',
+  DELETE: 'Delete',
+  RETRY: 'Retry',
+  SEND: 'Send',
+  CLOSE: 'Close',
+  BACK: 'Back',
+
+  BUY_NOW: 'Buy now',
+  ASK_ABOUT_THIS: 'Ask about this',
+  VIEW: 'View',
+  SHARE: 'Share',
+  SAVE_POST: 'Save',
+  MORE: 'More',
+
+  FOLLOW: 'Follow',
+  FOLLOWING: 'Following',
+  EDIT_PROFILE: 'Edit profile',
+  SHARE_PROFILE: 'Share profile',
+  VIEW_POSTS: 'View posts',
+
+  VERIFY_ACCOUNT: 'Verify account',
+  CONFIRM_AND_SAVE: 'Confirm and save',
+  REMOVE_PAYOUT_METHOD: 'Remove payout method',
+  ADD_REGION: 'Add region',
+
+  MARK_AS_SHIPPED: 'Mark as shipped',
+  CONFIRM_RECEIVED: 'Confirm received',
+  OPEN_DISPUTE: 'Open dispute',
+  WAITING_FOR_SELLER: 'Waiting for seller to ship',
+
+  EDIT_POST: 'Edit post',
+  PIN_TO_TOP: 'Pin to top of profile',
+  UNPIN_FROM_TOP: 'Unpin from top',
+  DELETE_POST: 'Delete this post',
+
+  I_WROTE_IT_DOWN: 'I wrote it down',
+  COPY: 'Copy',
+  REGENERATE: 'Regenerate',
+  USE_EMAIL_INSTEAD: 'Use email instead',
+  CHANGE_NUMBER: 'Change number',
+
+  SEND_CODE_TO_CONFIRM: 'Send code to confirm',
+  PAY_SECURELY: 'Pay securely',
+  DOWNLOAD_ANDROID: 'Download for Android',
+  OPEN_WEB_VERSION: 'Open the web version',
+
+  LOG_OUT: 'Log out',
+  DELETE_ACCOUNT: 'Delete account',
+  ADD_ACCOUNT: 'Add account',
+  SWITCH_ACCOUNT: 'Switch account',
+} as const;

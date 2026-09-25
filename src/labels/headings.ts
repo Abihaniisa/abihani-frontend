@@ -1,0 +1,38 @@
+export const HEADINGS = {
+  SPLASH_TAG: 'The social marketplace',
+
+  SIGNUP: 'Welcome.',
+  SIGNUP_LEDE: 'Discover. Like. Buy. Inside one feed.',
+  OTP: 'Enter the code.',
+  RECOVERY: 'Save your code.',
+  RECOVERY_HINT: 'Write this down. It is your last door if you lose access.',
+
+  FEED: 'Feed',
+  FEED_FOR_YOU: 'For You',
+  FEED_FOLLOWING: 'Following',
+  DISCOVER: 'Discover',
+  ORDERS: 'Orders',
+  THREAD: 'Order thread',
+  PROFILE: 'Profile',
+  CREATE: 'New post',
+  SETTINGS: 'Settings',
+  ADMIN: 'Admin',
+  SUPPORT: 'Help & Support',
+
+  COMMENTS: 'Comments',
+  BUY: 'Buy now',
+  CONFIRM_RECEIVED: 'Confirm received',
+  MARK_SHIPPED: 'Mark as shipped',
+  OPEN_DISPUTE: 'Open dispute',
+  REPORT: 'Report',
+  ABOUT: 'About Abihani',
+  NOTIFICATIONS: 'Notifications',
+
+  SECTION_TRENDING: 'Trending',
+  SECTION_FRESH_DROPS: 'Fresh drops',
+  SECTION_YOUR_REGIONS: 'Your regions',
+  SECTION_ACCOUNT: 'Account',
+  SECTION_SELLING: 'Selling',
+  SECTION_SUPPORT: 'Support',
+  SECTION_DANGER: 'Danger zone',
+} as const;
