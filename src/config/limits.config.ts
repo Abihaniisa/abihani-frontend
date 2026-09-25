@@ -1,0 +1,16 @@
+export const LIMITS = {
+  maxPhotos: 5,
+  maxVideos: 1,
+  maxCarousel: 5,
+  maxBioChars: 80,
+  maxDescriptionChars: 1000,
+  maxHashtags: 10,
+  maxPhotoMB: 20,
+  maxVideoMB: 200,
+  maxVideoSeconds: 180,
+  maxMessageChars: 2000,
+  maxCommentChars: 500,
+  platformFeeMin: 0.5,
+  platformFeeMax: 5,
+  platformFeeDefault: 1,
+} as const;
