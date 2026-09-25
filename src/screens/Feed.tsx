@@ -1,6 +1,8 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import Post from '../components/feed/Post';
 import Sheet from '../components/common/Sheet';
+import CommentComposer from '../components/feed/CommentComposer';
+import FeedEnd from '../components/feed/FeedEnd';
 import { useFeed, useSession } from '../store/feed.store';
 import {
   fetchForYouPosts,
@@ -23,27 +25,33 @@ export default function Feed({ tab, onOpenSeller }: FeedProps) {
   const toggleLiked = useSession((s) => s.toggleLiked);
   const toggleSaved = useSession((s) => s.toggleSaved);
 
-  const [loading, setLoading] = useState(true);
   const [commentsFor, setCommentsFor] = useState<PostType | null>(null);
   const [comments, setComments] = useState<Comment[]>([]);
   const [commentsLoading, setCommentsLoading] = useState(false);
   const [shareFor, setShareFor] = useState<PostType | null>(null);
-
-  const feedRef = useRef<HTMLDivElement>(null);
+  const [moreFor, setMoreFor] = useState<PostType | null>(null);
+  const [following, setFollowing] = useState<Record<string, boolean>>({});
+  const [toastMsg, setToastMsg] = useState<string | null>(null);
 
   useEffect(() => {
+    if (!toastMsg) return;
+    const t = window.setTimeout(() => setToastMsg(null), 2000);
+    return () => window.clearTimeout(t);
+  }, [toastMsg]);
+
+  useEffect(() => {
+    // Only fetch if the store is empty. No loading flash.
+    if (posts.length > 0) return;
     let cancelled = false;
-    setLoading(true);
     const load = tab === 'foryou' ? fetchForYouPosts : fetchFollowingPosts;
     load().then((list) => {
       if (cancelled) return;
       setPosts(list);
-      setLoading(false);
     });
     return () => {
       cancelled = true;
     };
-  }, [tab, setPosts]);
+  }, [tab, posts.length, setPosts]);
 
   async function openComments(post: PostType) {
     setCommentsFor(post);
@@ -53,21 +61,45 @@ export default function Feed({ tab, onOpenSeller }: FeedProps) {
     setCommentsLoading(false);
   }
 
-  if (loading) {
-    return (
-      <div
-        style={{
-          height: '100%',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          color: 'var(--bone-faint)',
-          fontSize: 14,
-        }}
-      >
-        Loading…
-      </div>
-    );
+  function sendComment(text: string) {
+    if (!commentsFor) return;
+    const optimistic: Comment = {
+      id: `c_local_${Date.now()}`,
+      postId: commentsFor.id,
+      user: {
+        id: 'me',
+        name: 'You',
+        avatarUrl: null,
+        verified: false,
+      },
+      time: 'now',
+      text,
+      likes: 0,
+      verifiedPurchase: false,
+      seller: false,
+      replies: [],
+    };
+    setComments((c) => [...c, optimistic]);
+  }
+
+  function handleShareOption(label: string) {
+    setShareFor(null);
+    if (label === 'Copy link') setToastMsg('Link copied');
+    else if (label === 'Share to WhatsApp') setToastMsg('Opening WhatsApp…');
+    else if (label === 'Share to Instagram') setToastMsg('Opening Instagram…');
+    else setToastMsg(label);
+  }
+
+  function handleBuy(_post: PostType) {
+    setToastMsg('Buy flow coming soon');
+  }
+
+  function handleMore(post: PostType) {
+    setMoreFor(post);
+  }
+
+  function toggleFollow(sellerId: string) {
+    setFollowing((f) => ({ ...f, [sellerId]: !f[sellerId] }));
   }
 
   if (posts.length === 0) {
@@ -106,11 +138,11 @@ export default function Feed({ tab, onOpenSeller }: FeedProps) {
   return (
     <>
       <div
-        ref={feedRef}
         style={{
           height: '100%',
           overflowY: 'scroll',
           scrollSnapType: 'y mandatory',
+          overscrollBehaviorY: 'contain',
           scrollbarWidth: 'none',
           msOverflowStyle: 'none',
           WebkitOverflowScrolling: 'touch',
@@ -122,18 +154,20 @@ export default function Feed({ tab, onOpenSeller }: FeedProps) {
             post={p}
             liked={!!liked[p.id]}
             saved={!!saved[p.id]}
-            following={false}
+            following={!!following[p.seller.id]}
             onLike={() => toggleLiked(p.id)}
             onSave={() => toggleSaved(p.id)}
             onComment={() => openComments(p)}
             onShare={() => setShareFor(p)}
-            onMore={() => {}}
+            onMore={() => handleMore(p)}
             onSellerTap={() => onOpenSeller(p.seller.id)}
-            onFollow={() => {}}
-            onBuy={() => {}}
+            onFollow={() => toggleFollow(p.seller.id)}
+            onBuy={() => handleBuy(p)}
             onSwipeToProfile={() => onOpenSeller(p.seller.id)}
           />
         ))}
+
+        <FeedEnd />
       </div>
 
       {commentsFor && (
@@ -151,13 +185,13 @@ export default function Feed({ tab, onOpenSeller }: FeedProps) {
           {comments.length === 0 && !commentsLoading && (
             <div
               style={{
-                padding: '20px 0',
+                padding: '20px 0 24px',
                 textAlign: 'center',
                 color: 'var(--bone-dim)',
                 fontSize: 13.5,
               }}
             >
-              No comments yet.
+              No comments yet. Be the first to ask something.
             </div>
           )}
 
@@ -181,6 +215,10 @@ export default function Feed({ tab, onOpenSeller }: FeedProps) {
                   backgroundSize: 'cover',
                   backgroundPosition: 'center',
                   flexShrink: 0,
+                  background: c.user.avatarUrl
+                    ? undefined
+                    : 'linear-gradient(135deg, #2B2733, #17151C)',
+                  border: '1px solid rgba(245, 240, 230, 0.10)',
                 }}
               />
               <div style={{ flex: 1, minWidth: 0 }}>
@@ -237,10 +275,7 @@ export default function Feed({ tab, onOpenSeller }: FeedProps) {
                     </span>
                   )}
                   <span
-                    style={{
-                      fontSize: 11,
-                      color: 'var(--bone-faint)',
-                    }}
+                    style={{ fontSize: 11, color: 'var(--bone-faint)' }}
                   >
                     {c.time}
                   </span>
@@ -257,6 +292,8 @@ export default function Feed({ tab, onOpenSeller }: FeedProps) {
               </div>
             </div>
           ))}
+
+          <CommentComposer userAvatarUrl={null} onSubmit={sendComment} />
         </Sheet>
       )}
 
@@ -266,28 +303,95 @@ export default function Feed({ tab, onOpenSeller }: FeedProps) {
           subtitle={shareFor.title}
           onClose={() => setShareFor(null)}
         >
-          {['Copy link', 'Share to WhatsApp', 'Share to Instagram'].map((label) => (
-            <button
-              key={label}
-              type="button"
-              onClick={() => setShareFor(null)}
-              style={{
-                width: '100%',
-                padding: '14px 0',
-                background: 'none',
-                border: 'none',
-                borderBottom: '1px solid rgba(245, 240, 230, 0.06)',
-                textAlign: 'left',
-                color: 'var(--bone)',
-                fontFamily: 'inherit',
-                fontSize: 14.5,
-                cursor: 'pointer',
-              }}
-            >
-              {label}
-            </button>
-          ))}
+          {['Copy link', 'Share to WhatsApp', 'Share to Instagram'].map(
+            (label) => (
+              <button
+                key={label}
+                type="button"
+                onClick={() => handleShareOption(label)}
+                style={{
+                  width: '100%',
+                  padding: '14px 0',
+                  background: 'none',
+                  border: 'none',
+                  borderBottom: '1px solid rgba(245, 240, 230, 0.06)',
+                  textAlign: 'left',
+                  color: 'var(--bone)',
+                  fontFamily: 'inherit',
+                  fontSize: 14.5,
+                  cursor: 'pointer',
+                }}
+              >
+                {label}
+              </button>
+            ),
+          )}
         </Sheet>
+      )}
+
+      {moreFor && (
+        <Sheet
+          title="Post options"
+          subtitle={moreFor.title}
+          onClose={() => setMoreFor(null)}
+        >
+          {['Report post', 'Report seller', 'Block seller', 'Cancel'].map(
+            (label, i) => (
+              <button
+                key={label}
+                type="button"
+                onClick={() => {
+                  setMoreFor(null);
+                  if (label === 'Cancel') return;
+                  setToastMsg(label);
+                }}
+                style={{
+                  width: '100%',
+                  padding: '14px 0',
+                  background: 'none',
+                  border: 'none',
+                  borderBottom:
+                    i < 3
+                      ? '1px solid rgba(245, 240, 230, 0.06)'
+                      : 'none',
+                  textAlign: 'left',
+                  color: label.startsWith('Block') ? '#FF5C78' : 'var(--bone)',
+                  fontFamily: 'inherit',
+                  fontSize: 14.5,
+                  cursor: 'pointer',
+                }}
+              >
+                {label}
+              </button>
+            ),
+          )}
+        </Sheet>
+      )}
+
+      {toastMsg && (
+        <div
+          style={{
+            position: 'fixed',
+            bottom: 'calc(var(--safe-bottom) + 110px)',
+            left: '50%',
+            transform: 'translateX(-50%)',
+            background: 'var(--crimson)',
+            color: '#FFF',
+            padding: '13px 24px',
+            borderRadius: 40,
+            fontSize: 13.5,
+            fontWeight: 700,
+            letterSpacing: '-0.15px',
+            boxShadow: '0 16px 44px rgba(196, 30, 58, 0.5)',
+            zIndex: 400,
+            whiteSpace: 'nowrap',
+            maxWidth: '88vw',
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
+          }}
+        >
+          {toastMsg}
+        </div>
       )}
     </>
   );
