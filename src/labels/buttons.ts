@@ -41,7 +41,7 @@ export const BUTTONS = {
   COPY: 'Copy',
   REGENERATE: 'Regenerate',
   USE_EMAIL_INSTEAD: 'Use email instead',
-  CHANGE_NUMBER: 'Change number',
+  CHANGE_EMAIL: 'Change email',
 
   SEND_CODE_TO_CONFIRM: 'Send code to confirm',
   PAY_SECURELY: 'Pay securely',
