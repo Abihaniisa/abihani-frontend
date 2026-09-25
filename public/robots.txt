@@ -1,1 +1,7 @@
+User-agent: *
+Allow: /
+Disallow: /admin
+Disallow: /settings
+Disallow: /signup
 
+Sitemap: https://abihani.pages.dev/sitemap.xml
