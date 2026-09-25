@@ -15,132 +15,81 @@ type RailProps = {
   onFollow: () => void;
 };
 
-function RailBtn({
-  label,
-  active,
-  onClick,
-  children,
-}: {
-  label: string;
-  active?: boolean;
-  onClick: () => void;
-  children: React.ReactNode;
-}) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      style={{
-        background: 'none',
-        border: 'none',
-        color: '#FFF',
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        gap: 4,
-        cursor: 'pointer',
-        padding: 0,
-        fontFamily: 'inherit',
-      }}
-    >
-      <span
-        style={{
-          width: 46,
-          height: 46,
-          borderRadius: '50%',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          background: active
-            ? 'rgba(196, 30, 58, 0.22)'
-            : 'rgba(18, 16, 22, 0.72)',
-          border: active
-            ? '1px solid rgba(196, 30, 58, 0.55)'
-            : '1px solid rgba(245, 240, 230, 0.10)',
-          backdropFilter: 'blur(20px) saturate(180%)',
-          WebkitBackdropFilter: 'blur(20px) saturate(180%)',
-          color: active ? '#FF5C78' : '#FFF',
-          transition: 'background .25s var(--ease), border-color .25s var(--ease)',
-        }}
-      >
-        {children}
-      </span>
-      <span
-        style={{
-          fontSize: 11.5,
-          fontWeight: 700,
-          color: active ? '#FF5C78' : '#FFF',
-          textShadow: '0 1px 8px rgba(0,0,0,0.9)',
-        }}
-      >
-        {label}
-      </span>
-    </button>
-  );
+type Tone = 'bone' | 'crimson' | 'gold';
+
+function railIconStyle(tone: Tone, active: boolean): React.CSSProperties {
+  if (tone === 'crimson') {
+    return {
+      width: 46,
+      height: 46,
+      borderRadius: '50%',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      background: active
+        ? 'rgba(196, 30, 58, 0.22)'
+        : 'rgba(18, 16, 22, 0.72)',
+      border: active
+        ? '1px solid rgba(196, 30, 58, 0.55)'
+        : '1px solid rgba(245, 240, 230, 0.10)',
+      backdropFilter: 'blur(20px) saturate(180%)',
+      WebkitBackdropFilter: 'blur(20px) saturate(180%)',
+      color: active ? '#FF5C78' : '#FFF',
+      transition:
+        'background .25s var(--ease), border-color .25s var(--ease), color .25s var(--ease)',
+    };
+  }
+  if (tone === 'gold') {
+    return {
+      width: 46,
+      height: 46,
+      borderRadius: '50%',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      background: active
+        ? 'rgba(231, 194, 122, 0.22)'
+        : 'rgba(18, 16, 22, 0.72)',
+      border: active
+        ? '1px solid rgba(231, 194, 122, 0.6)'
+        : '1px solid rgba(245, 240, 230, 0.10)',
+      backdropFilter: 'blur(20px) saturate(180%)',
+      WebkitBackdropFilter: 'blur(20px) saturate(180%)',
+      color: active ? 'var(--gold)' : '#FFF',
+      transition:
+        'background .25s var(--ease), border-color .25s var(--ease), color .25s var(--ease)',
+    };
+  }
+  return {
+    width: 46,
+    height: 46,
+    borderRadius: '50%',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    background: 'rgba(18, 16, 22, 0.72)',
+    border: '1px solid rgba(245, 240, 230, 0.10)',
+    backdropFilter: 'blur(20px) saturate(180%)',
+    WebkitBackdropFilter: 'blur(20px) saturate(180%)',
+    color: '#FFF',
+    transition:
+      'background .25s var(--ease), border-color .25s var(--ease), color .25s var(--ease)',
+  };
 }
 
-function GoldBtn({
-  label,
-  active,
-  onClick,
-  children,
-}: {
-  label: string;
-  active?: boolean;
-  onClick: () => void;
-  children: React.ReactNode;
-}) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      style={{
-        background: 'none',
-        border: 'none',
-        color: '#FFF',
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        gap: 4,
-        cursor: 'pointer',
-        padding: 0,
-        fontFamily: 'inherit',
-      }}
-    >
-      <span
-        style={{
-          width: 46,
-          height: 46,
-          borderRadius: '50%',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          background: active
-            ? 'rgba(231, 194, 122, 0.22)'
-            : 'rgba(18, 16, 22, 0.72)',
-          border: active
-            ? '1px solid rgba(231, 194, 122, 0.6)'
-            : '1px solid rgba(245, 240, 230, 0.10)',
-          backdropFilter: 'blur(20px) saturate(180%)',
-          WebkitBackdropFilter: 'blur(20px) saturate(180%)',
-          color: active ? 'var(--gold)' : '#FFF',
-          transition: 'background .25s var(--ease), border-color .25s var(--ease)',
-        }}
-      >
-        {children}
-      </span>
-      <span
-        style={{
-          fontSize: 11.5,
-          fontWeight: 700,
-          color: active ? 'var(--gold)' : '#FFF',
-          textShadow: '0 1px 8px rgba(0,0,0,0.9)',
-        }}
-      >
-        {label}
-      </span>
-    </button>
-  );
+function railLabelStyle(tone: Tone, active: boolean): React.CSSProperties {
+  const color =
+    tone === 'gold' && active
+      ? 'var(--gold)'
+      : tone === 'crimson' && active
+      ? '#FF5C78'
+      : '#FFF';
+  return {
+    fontSize: 11.5,
+    fontWeight: 700,
+    color,
+    textShadow: '0 1px 8px rgba(0,0,0,0.9)',
+  };
 }
 
 export default function Rail({
@@ -161,12 +110,13 @@ export default function Rail({
       style={{
         position: 'absolute',
         right: 10,
-        bottom: 'calc(var(--safe-bottom) + 118px)',
+        bottom: 'calc(var(--safe-bottom) + 220px)',
         zIndex: 25,
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
-        gap: 12,
+        gap: 10,
+        maxHeight: 'calc(100% - 320px)',
       }}
     >
       <div
@@ -226,25 +176,133 @@ export default function Rail({
         )}
       </div>
 
-      <RailBtn label="Like" active={liked} onClick={onLike}>
-        <Icon name="heart" size={22} filled={liked} />
-      </RailBtn>
+      {!following && (
+        <button
+          type="button"
+          onClick={onFollow}
+          style={{
+            padding: '6px 13px',
+            background: 'var(--crimson)',
+            color: '#FFF',
+            border: 'none',
+            borderRadius: 40,
+            fontSize: 11,
+            fontWeight: 700,
+            fontFamily: 'inherit',
+            letterSpacing: 0.1,
+            cursor: 'pointer',
+            boxShadow: '0 4px 14px rgba(196, 30, 58, 0.4)',
+            marginBottom: 4,
+          }}
+        >
+          Follow
+        </button>
+      )}
 
-      <RailBtn label="Comment" onClick={onComment}>
-        <Icon name="comment" size={22} />
-      </RailBtn>
+      <button
+        type="button"
+        onClick={onLike}
+        style={{
+          background: 'none',
+          border: 'none',
+          padding: 0,
+          cursor: 'pointer',
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          gap: 4,
+          fontFamily: 'inherit',
+        }}
+      >
+        <span style={railIconStyle('crimson', liked)}>
+          <Icon name="heart" size={22} filled={liked} />
+        </span>
+        <span style={railLabelStyle('crimson', liked)}>Like</span>
+      </button>
 
-      <RailBtn label="Share" onClick={onShare}>
-        <Icon name="share" size={22} />
-      </RailBtn>
+      <button
+        type="button"
+        onClick={onComment}
+        style={{
+          background: 'none',
+          border: 'none',
+          padding: 0,
+          cursor: 'pointer',
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          gap: 4,
+          fontFamily: 'inherit',
+        }}
+      >
+        <span style={railIconStyle('bone', false)}>
+          <Icon name="comment" size={22} />
+        </span>
+        <span style={railLabelStyle('bone', false)}>Comment</span>
+      </button>
 
-      <GoldBtn label="Save" active={saved} onClick={onSave}>
-        <Icon name="save" size={22} filled={saved} />
-      </GoldBtn>
+      <button
+        type="button"
+        onClick={onShare}
+        style={{
+          background: 'none',
+          border: 'none',
+          padding: 0,
+          cursor: 'pointer',
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          gap: 4,
+          fontFamily: 'inherit',
+        }}
+      >
+        <span style={railIconStyle('bone', false)}>
+          <Icon name="share" size={22} />
+        </span>
+        <span style={railLabelStyle('bone', false)}>Share</span>
+      </button>
 
-      <RailBtn label="More" onClick={onMore}>
-        <Icon name="more" size={22} />
-      </RailBtn>
+      <button
+        type="button"
+        onClick={onSave}
+        style={{
+          background: 'none',
+          border: 'none',
+          padding: 0,
+          cursor: 'pointer',
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          gap: 4,
+          fontFamily: 'inherit',
+        }}
+      >
+        <span style={railIconStyle('gold', saved)}>
+          <Icon name="save" size={22} filled={saved} />
+        </span>
+        <span style={railLabelStyle('gold', saved)}>Save</span>
+      </button>
+
+      <button
+        type="button"
+        onClick={onMore}
+        style={{
+          background: 'none',
+          border: 'none',
+          padding: 0,
+          cursor: 'pointer',
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          gap: 4,
+          fontFamily: 'inherit',
+        }}
+      >
+        <span style={railIconStyle('bone', false)}>
+          <Icon name="more" size={22} />
+        </span>
+        <span style={railLabelStyle('bone', false)}>More</span>
+      </button>
     </div>
   );
 }
