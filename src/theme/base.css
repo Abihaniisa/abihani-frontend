@@ -195,3 +195,20 @@ p {
 .crossfade-out {
   animation: abihaniCrossfadeOut 200ms cubic-bezier(0.16, 1, 0.3, 1) both;
 }
+
+* {
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
+
+input,
+textarea,
+[contenteditable="true"] {
+  -webkit-user-select: text;
+  -moz-user-select: text;
+  -ms-user-select: text;
+  user-select: text;
+}
