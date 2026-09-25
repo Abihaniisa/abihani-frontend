@@ -1,23 +1,31 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { HEADINGS } from '../labels/headings';
 import { BUTTONS } from '../labels/buttons';
-import { MESSAGES } from '../labels/messages';
+import { formatRecoveryCode } from '../engine/validation.engine';
 
 type RecoveryProps = {
-  code: string;
+  code: string | null;
   onDone: () => void;
 };
 
 export default function Recovery({ code, onDone }: RecoveryProps) {
   const [copied, setCopied] = useState(false);
 
+  useEffect(() => {
+    if (!copied) return;
+    const t = window.setTimeout(() => setCopied(false), 2000);
+    return () => window.clearTimeout(t);
+  }, [copied]);
+
+  const display = code ? formatRecoveryCode(code) : '— — — —  — — — —';
+
   async function copyCode() {
+    if (!code) return;
     try {
       await navigator.clipboard.writeText(code);
       setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
     } catch {
-      // Clipboard may be blocked on some browsers — fall back silently.
+      // Clipboard may be blocked on some browsers — silent fallback.
     }
   }
 
@@ -29,7 +37,8 @@ export default function Recovery({ code, onDone }: RecoveryProps) {
         color: 'var(--bone)',
         display: 'flex',
         flexDirection: 'column',
-        padding: 'calc(var(--safe-top) + 60px) 28px calc(var(--safe-bottom) + 28px)',
+        padding:
+          'calc(var(--safe-top) + 60px) 28px calc(var(--safe-bottom) + 28px)',
         gap: 24,
       }}
     >
@@ -71,11 +80,12 @@ export default function Recovery({ code, onDone }: RecoveryProps) {
             textAlign: 'center',
           }}
         >
-          {code}
+          {display}
         </div>
         <button
           type="button"
           onClick={copyCode}
+          disabled={!code}
           style={{
             padding: '10px 20px',
             borderRadius: 40,
@@ -85,14 +95,22 @@ export default function Recovery({ code, onDone }: RecoveryProps) {
             fontFamily: 'inherit',
             fontSize: 13,
             fontWeight: 600,
-            cursor: 'pointer',
+            cursor: code ? 'pointer' : 'not-allowed',
+            opacity: code ? 1 : 0.5,
           }}
         >
           {copied ? 'Copied' : BUTTONS.COPY}
         </button>
       </div>
 
-      <div style={{ marginTop: 'auto', display: 'flex', flexDirection: 'column', gap: 10 }}>
+      <div
+        style={{
+          marginTop: 'auto',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: 10,
+        }}
+      >
         <button
           type="button"
           onClick={onDone}
@@ -114,17 +132,6 @@ export default function Recovery({ code, onDone }: RecoveryProps) {
           {BUTTONS.I_WROTE_IT_DOWN}
         </button>
       </div>
-
-      <p
-        style={{
-          fontSize: 12,
-          color: 'var(--bone-faint)',
-          textAlign: 'center',
-          lineHeight: 1.5,
-        }}
-      >
-        {MESSAGES.SOMETHING_WENT_WRONG === '' ? '' : ''}
-      </p>
     </div>
   );
 }

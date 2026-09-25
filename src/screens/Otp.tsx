@@ -2,26 +2,34 @@ import { useState } from 'react';
 import { HEADINGS } from '../labels/headings';
 import { BUTTONS } from '../labels/buttons';
 import { MESSAGES } from '../labels/messages';
+import { isValidOtp } from '../engine/validation.engine';
 
 type OtpProps = {
   email: string;
   onBack: () => void;
-  onVerify: () => void;
+  onVerify: (code: string) => Promise<boolean> | boolean;
 };
 
 export default function Otp({ email, onBack, onVerify }: OtpProps) {
   const [code, setCode] = useState('');
   const [error, setError] = useState('');
+  const [verifying, setVerifying] = useState(false);
 
-  const isValid = /^\d{6}$/.test(code);
+  const valid = isValidOtp(code);
 
-  function handleVerify() {
-    if (!isValid) {
+  async function handleVerify() {
+    if (!valid) {
       setError(MESSAGES.INVALID_CODE);
       return;
     }
     setError('');
-    onVerify();
+    setVerifying(true);
+    try {
+      const ok = await onVerify(code);
+      if (!ok) setError(MESSAGES.INVALID_CODE);
+    } finally {
+      setVerifying(false);
+    }
   }
 
   return (
@@ -32,7 +40,8 @@ export default function Otp({ email, onBack, onVerify }: OtpProps) {
         color: 'var(--bone)',
         display: 'flex',
         flexDirection: 'column',
-        padding: 'calc(var(--safe-top) + 60px) 28px calc(var(--safe-bottom) + 28px)',
+        padding:
+          'calc(var(--safe-top) + 60px) 28px calc(var(--safe-bottom) + 28px)',
         gap: 24,
       }}
     >
@@ -48,7 +57,8 @@ export default function Otp({ email, onBack, onVerify }: OtpProps) {
             letterSpacing: '-0.15px',
           }}
         >
-          We sent a 6-digit code to <strong style={{ color: 'var(--gold)' }}>{email}</strong>
+          We sent a 6-digit code to{' '}
+          <strong style={{ color: 'var(--gold)' }}>{email}</strong>
         </p>
       </div>
 
@@ -65,6 +75,12 @@ export default function Otp({ email, onBack, onVerify }: OtpProps) {
           }}
           placeholder="000000"
           autoComplete="one-time-code"
+          autoCorrect="off"
+          autoCapitalize="none"
+          spellCheck={false}
+          name="otp"
+          data-lpignore="true"
+          data-form-type="other"
           style={{
             width: '100%',
             padding: '22px 20px',
@@ -82,7 +98,13 @@ export default function Otp({ email, onBack, onVerify }: OtpProps) {
           }}
         />
         {error && (
-          <div style={{ fontSize: 12.5, color: 'var(--danger)', fontWeight: 600 }}>
+          <div
+            style={{
+              fontSize: 12.5,
+              color: 'var(--danger)',
+              fontWeight: 600,
+            }}
+          >
             {error}
           </div>
         )}
@@ -99,7 +121,7 @@ export default function Otp({ email, onBack, onVerify }: OtpProps) {
         <button
           type="button"
           onClick={handleVerify}
-          disabled={!isValid}
+          disabled={!valid || verifying}
           style={{
             width: '100%',
             padding: 18,
@@ -111,12 +133,16 @@ export default function Otp({ email, onBack, onVerify }: OtpProps) {
             fontSize: 16,
             fontWeight: 700,
             letterSpacing: '-0.2px',
-            cursor: isValid ? 'pointer' : 'not-allowed',
-            opacity: isValid ? 1 : 0.5,
+            cursor: valid && !verifying ? 'pointer' : 'not-allowed',
+            opacity: valid && !verifying ? 1 : 0.5,
             boxShadow: '0 12px 32px rgba(196, 30, 58, 0.35)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: 10,
           }}
         >
-          Verify
+          {verifying ? MESSAGES.VERIFYING : 'Verify'}
         </button>
         <button
           type="button"
