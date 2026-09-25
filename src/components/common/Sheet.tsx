@@ -47,52 +47,72 @@ export default function Sheet({
           background: 'var(--surface, #17151C)',
           borderTopLeftRadius: 28,
           borderTopRightRadius: 28,
-          padding: '14px 20px calc(var(--safe-bottom) + 26px)',
+          padding: 0,
           boxShadow: '0 -20px 60px rgba(0, 0, 0, 0.75)',
           borderTop: '1px solid rgba(245, 240, 230, 0.10)',
           zIndex: 100,
           maxHeight: '88dvh',
-          overflowY: 'auto',
+          overflow: 'hidden',
+          display: 'flex',
+          flexDirection: 'column',
         }}
       >
         <div
           style={{
-            width: 40,
-            height: 4,
-            borderRadius: 4,
-            background: 'rgba(245, 240, 230, 0.18)',
-            margin: '0 auto 20px',
+            padding: '14px 20px 0',
+            flexShrink: 0,
           }}
-        />
-
-        {title && (
+        >
           <div
             style={{
-              fontSize: 20,
-              fontWeight: 700,
-              color: 'var(--bone)',
-              letterSpacing: '-0.5px',
-              marginBottom: subtitle ? 6 : 18,
+              width: 40,
+              height: 4,
+              borderRadius: 4,
+              background: 'rgba(245, 240, 230, 0.18)',
+              margin: '0 auto 20px',
             }}
-          >
-            {title}
-          </div>
-        )}
+          />
 
-        {subtitle && (
-          <div
-            style={{
-              fontSize: 13.5,
-              color: 'var(--bone-faint)',
-              marginBottom: 20,
-              lineHeight: 1.5,
-            }}
-          >
-            {subtitle}
-          </div>
-        )}
+          {title && (
+            <div
+              style={{
+                fontSize: 20,
+                fontWeight: 700,
+                color: 'var(--bone)',
+                letterSpacing: '-0.5px',
+                marginBottom: subtitle ? 6 : 18,
+              }}
+            >
+              {title}
+            </div>
+          )}
 
-        {children}
+          {subtitle && (
+            <div
+              style={{
+                fontSize: 13.5,
+                color: 'var(--bone-faint)',
+                marginBottom: 16,
+                lineHeight: 1.5,
+              }}
+            >
+              {subtitle}
+            </div>
+          )}
+        </div>
+
+        <div
+          style={{
+            flex: 1,
+            minHeight: 0,
+            overflowY: 'auto',
+            padding: '0 20px',
+            scrollbarWidth: 'none',
+            msOverflowStyle: 'none',
+          }}
+        >
+          <div style={{ paddingBottom: 20 }}>{children}</div>
+        </div>
       </div>
     </>
   );
