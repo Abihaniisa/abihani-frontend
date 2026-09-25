@@ -1,99 +1,99 @@
-import Carousel from './Carousel';
-import Rail from './Rail';
-import InfoCard from './InfoCard';
-import type { Post as PostType } from '../../types/post.types';
+import { useEffect } from 'react';
 
-type PostProps = {
-  post: PostType;
-  liked: boolean;
-  saved: boolean;
-  following: boolean;
-  onLike: () => void;
-  onSave: () => void;
-  onComment: () => void;
-  onShare: () => void;
-  onMore: () => void;
-  onSellerTap: () => void;
-  onFollow: () => void;
-  onBuy: () => void;
-  onSwipeToProfile: () => void;
+type SheetProps = {
+  title?: string;
+  subtitle?: string;
+  onClose: () => void;
+  children: React.ReactNode;
 };
 
-export default function Post({
-  post,
-  liked,
-  saved,
-  following,
-  onLike,
-  onSave,
-  onComment,
-  onShare,
-  onMore,
-  onSellerTap,
-  onFollow,
-  onBuy,
-  onSwipeToProfile,
-}: PostProps) {
-  return (
-    <section
-      data-post={post.id}
-      style={{
-        position: 'relative',
-        height: '100dvh',
-        scrollSnapAlign: 'start',
-        scrollSnapStop: 'always',
-        overflow: 'hidden',
-        background: '#000',
-        flexShrink: 0,
-      }}
-    >
-      <Carousel images={post.images} alt={post.title} />
+export default function Sheet({
+  title,
+  subtitle,
+  onClose,
+  children,
+}: SheetProps) {
+  useEffect(() => {
+    function onKey(e: KeyboardEvent) {
+      if (e.key === 'Escape') onClose();
+    }
+    document.addEventListener('keydown', onKey);
+    return () => document.removeEventListener('keydown', onKey);
+  }, [onClose]);
 
-      {/* Top scrim — keeps the chrome legible */}
+  return (
+    <>
       <div
+        onClick={onClose}
         style={{
-          position: 'absolute',
-          top: 0,
-          left: 0,
-          right: 0,
-          height: 210,
-          background:
-            'linear-gradient(to bottom, rgba(5,5,10,0.9) 0%, rgba(5,5,10,0.5) 45%, rgba(5,5,10,0) 100%)',
-          pointerEvents: 'none',
-          zIndex: 20,
+          position: 'fixed',
+          inset: 0,
+          background: 'rgba(0, 0, 0, 0.65)',
+          backdropFilter: 'blur(6px)',
+          WebkitBackdropFilter: 'blur(6px)',
+          zIndex: 90,
         }}
       />
-
-      {/* Bottom scrim */}
       <div
+        role="dialog"
+        aria-modal="true"
         style={{
-          position: 'absolute',
+          position: 'fixed',
           left: 0,
           right: 0,
           bottom: 0,
-          height: '60%',
-          background:
-            'linear-gradient(to top, rgba(5,5,10,0.96) 0%, rgba(5,5,10,0.7) 30%, rgba(5,5,10,0) 100%)',
-          pointerEvents: 'none',
-          zIndex: 20,
+          maxWidth: 460,
+          margin: '0 auto',
+          background: 'var(--surface, #17151C)',
+          borderTopLeftRadius: 28,
+          borderTopRightRadius: 28,
+          padding: '14px 20px calc(var(--safe-bottom) + 26px)',
+          boxShadow: '0 -20px 60px rgba(0, 0, 0, 0.75)',
+          borderTop: '1px solid rgba(245, 240, 230, 0.10)',
+          zIndex: 100,
+          maxHeight: '88dvh',
+          overflowY: 'auto',
         }}
-      />
+      >
+        <div
+          style={{
+            width: 40,
+            height: 4,
+            borderRadius: 4,
+            background: 'rgba(245, 240, 230, 0.18)',
+            margin: '0 auto 20px',
+          }}
+        />
 
-      <Rail
-        post={post}
-        liked={liked}
-        saved={saved}
-        following={following}
-        onLike={onLike}
-        onSave={onSave}
-        onComment={onComment}
-        onShare={onShare}
-        onMore={onMore}
-        onAvatar={onSellerTap}
-        onFollow={onFollow}
-      />
+        {title && (
+          <div
+            style={{
+              fontSize: 20,
+              fontWeight: 700,
+              color: 'var(--bone)',
+              letterSpacing: '-0.5px',
+              marginBottom: subtitle ? 6 : 18,
+            }}
+          >
+            {title}
+          </div>
+        )}
 
-      <InfoCard post={post} onSellerTap={onSellerTap} onBuy={onBuy} />
-    </section>
+        {subtitle && (
+          <div
+            style={{
+              fontSize: 13.5,
+              color: 'var(--bone-faint)',
+              marginBottom: 20,
+              lineHeight: 1.5,
+            }}
+          >
+            {subtitle}
+          </div>
+        )}
+
+        {children}
+      </div>
+    </>
   );
 }
