@@ -22,18 +22,10 @@ export default function CommentComposer({
   return (
     <div
       style={{
-        position: 'sticky',
-        bottom: 0,
-        marginLeft: -20,
-        marginRight: -20,
-        marginBottom: 'calc(-26px - var(--safe-bottom))',
-        padding: '12px 16px calc(var(--safe-bottom) + 14px)',
-        background: 'var(--surface, #17151C)',
-        borderTop: '1px solid rgba(245, 240, 230, 0.10)',
         display: 'flex',
         gap: 10,
         alignItems: 'flex-end',
-        zIndex: 5,
+        marginTop: 8,
       }}
     >
       <span
@@ -41,7 +33,7 @@ export default function CommentComposer({
           width: 34,
           height: 34,
           borderRadius: '50%',
-          backgroundImage: `url('${userAvatarUrl ?? ''}')`,
+          backgroundImage: userAvatarUrl ? `url('${userAvatarUrl}')` : undefined,
           backgroundSize: 'cover',
           backgroundPosition: 'center',
           flexShrink: 0,
@@ -78,9 +70,9 @@ export default function CommentComposer({
           autoCorrect="off"
           autoCapitalize="sentences"
           spellCheck={false}
-          name="comment"
           data-lpignore="true"
           data-form-type="other"
+          inputMode="text"
           style={{
             flex: 1,
             background: 'transparent',

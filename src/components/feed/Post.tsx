@@ -37,17 +37,25 @@ export default function Post({
 }: PostProps) {
   const mediaRef = useRef<HTMLDivElement>(null);
 
+  const [cardOpen, setCardOpen] = useState(false);
   const [heartBursts, setHeartBursts] = useState<
     Array<{ id: number; x: number; y: number }>
   >([]);
+  const [dragX, setDragX] = useState(0);
 
-  const [shiftOut, setShiftOut] = useState(false);
   const touchState = useRef<{
     active: boolean;
     startX: number;
     startY: number;
     onLastImage: boolean;
-  }>({ active: false, startX: 0, startY: 0, onLastImage: false });
+    dragging: boolean;
+  }>({
+    active: false,
+    startX: 0,
+    startY: 0,
+    onLastImage: true,
+    dragging: false,
+  });
 
   const lastTapRef = useRef(0);
 
@@ -86,25 +94,56 @@ export default function Post({
       startX: t.clientX,
       startY: t.clientY,
       onLastImage: isCarouselAtEnd(),
+      dragging: false,
     };
   }
 
-  function onTouchEnd(e: React.TouchEvent<HTMLDivElement>) {
-    const state = touchState.current;
-    if (!state.active) return;
-    state.active = false;
-    const t = e.changedTouches[0];
-    const dx = t.clientX - state.startX;
-    const dy = Math.abs(t.clientY - state.startY);
-    if (dy > 60) return;
-    if (dx < -90 && state.onLastImage) {
-      setShiftOut(true);
-      window.setTimeout(() => {
-        onSwipeToProfile();
-        setShiftOut(false);
-      }, 180);
+  function onTouchMove(e: React.TouchEvent<HTMLDivElement>) {
+    const s = touchState.current;
+    if (!s.active) return;
+    const t = e.touches[0];
+    const dx = t.clientX - s.startX;
+    const dy = t.clientY - s.startY;
+    if (Math.abs(dy) > 30 && !s.dragging) {
+      s.active = false;
+      setDragX(0);
+      return;
+    }
+    if (dx < -20 && s.onLastImage) {
+      s.dragging = true;
+      const clamped = Math.max(dx, -window.innerWidth);
+      setDragX(clamped);
+    } else if (dx >= 0) {
+      setDragX(0);
     }
   }
+
+  function onTouchEnd() {
+    const s = touchState.current;
+    if (!s.active && !s.dragging) {
+      setDragX(0);
+      return;
+    }
+    const wasDragging = s.dragging;
+    const finalX = dragX;
+    s.active = false;
+    s.dragging = false;
+
+    if (wasDragging) {
+      const threshold = -window.innerWidth * 0.25;
+      if (finalX < threshold) {
+        setDragX(-window.innerWidth);
+        window.setTimeout(() => {
+          onSwipeToProfile();
+          setDragX(0);
+        }, 220);
+      } else {
+        setDragX(0);
+      }
+    }
+  }
+
+  const translate = dragX !== 0 ? `translateX(${dragX}px)` : undefined;
 
   return (
     <section
@@ -117,14 +156,15 @@ export default function Post({
         overflow: 'hidden',
         background: '#000',
         flexShrink: 0,
-        transform: shiftOut ? 'translateX(-40px)' : 'translateX(0)',
-        transition: 'transform .18s var(--ease)',
+        transform: translate,
+        transition: dragX === 0 ? 'transform .3s var(--push)' : 'none',
       }}
     >
       <div
         ref={mediaRef}
         onClick={handleClick}
         onTouchStart={onTouchStart}
+        onTouchMove={onTouchMove}
         onTouchEnd={onTouchEnd}
         style={{
           position: 'absolute',
@@ -196,6 +236,7 @@ export default function Post({
         liked={liked}
         saved={saved}
         following={following}
+        cardOpen={cardOpen}
         onLike={onLike}
         onSave={onSave}
         onComment={onComment}
@@ -205,7 +246,12 @@ export default function Post({
         onFollow={onFollow}
       />
 
-      <InfoCard post={post} onSellerTap={onSellerTap} onBuy={onBuy} />
+      <InfoCard
+        post={post}
+        onSellerTap={onSellerTap}
+        onBuy={onBuy}
+        onOpenChange={setCardOpen}
+      />
 
       <style>{`
         @keyframes abihaniHeartBurst {

@@ -6,6 +6,7 @@ type RailProps = {
   liked: boolean;
   saved: boolean;
   following: boolean;
+  cardOpen: boolean;
   onLike: () => void;
   onSave: () => void;
   onComment: () => void;
@@ -20,8 +21,8 @@ type Tone = 'bone' | 'crimson' | 'gold';
 function railIconStyle(tone: Tone, active: boolean): React.CSSProperties {
   if (tone === 'crimson') {
     return {
-      width: 46,
-      height: 46,
+      width: 44,
+      height: 44,
       borderRadius: '50%',
       display: 'flex',
       alignItems: 'center',
@@ -41,8 +42,8 @@ function railIconStyle(tone: Tone, active: boolean): React.CSSProperties {
   }
   if (tone === 'gold') {
     return {
-      width: 46,
-      height: 46,
+      width: 44,
+      height: 44,
       borderRadius: '50%',
       display: 'flex',
       alignItems: 'center',
@@ -61,8 +62,8 @@ function railIconStyle(tone: Tone, active: boolean): React.CSSProperties {
     };
   }
   return {
-    width: 46,
-    height: 46,
+    width: 44,
+    height: 44,
     borderRadius: '50%',
     display: 'flex',
     alignItems: 'center',
@@ -85,7 +86,7 @@ function railLabelStyle(tone: Tone, active: boolean): React.CSSProperties {
       ? '#FF5C78'
       : '#FFF';
   return {
-    fontSize: 11.5,
+    fontSize: 11,
     fontWeight: 700,
     color,
     textShadow: '0 1px 8px rgba(0,0,0,0.9)',
@@ -97,6 +98,7 @@ export default function Rail({
   liked,
   saved,
   following,
+  cardOpen,
   onLike,
   onSave,
   onComment,
@@ -105,18 +107,20 @@ export default function Rail({
   onAvatar,
   onFollow,
 }: RailProps) {
+  const railBottom = cardOpen ? 280 : 210;
+
   return (
     <div
       style={{
         position: 'absolute',
         right: 10,
-        bottom: 'calc(var(--safe-bottom) + 220px)',
+        bottom: `calc(var(--safe-bottom) + ${railBottom}px)`,
         zIndex: 25,
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
-        gap: 10,
-        maxHeight: 'calc(100% - 320px)',
+        gap: 9,
+        transition: 'bottom .35s cubic-bezier(.32, .72, 0, 1)',
       }}
     >
       <div
@@ -132,8 +136,8 @@ export default function Rail({
           onClick={onAvatar}
           aria-label={post.seller.name}
           style={{
-            width: 48,
-            height: 48,
+            width: 46,
+            height: 46,
             borderRadius: '50%',
             backgroundImage: `url('${post.seller.avatarUrl ?? ''}')`,
             backgroundSize: 'cover',
@@ -154,8 +158,8 @@ export default function Rail({
               bottom: -6,
               left: '50%',
               transform: 'translateX(-50%)',
-              width: 22,
-              height: 22,
+              width: 20,
+              height: 20,
               borderRadius: '50%',
               background: 'var(--crimson)',
               color: '#FFF',
@@ -163,7 +167,7 @@ export default function Rail({
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              fontSize: 15,
+              fontSize: 14,
               fontWeight: 800,
               lineHeight: 1,
               cursor: 'pointer',
@@ -176,28 +180,33 @@ export default function Rail({
         )}
       </div>
 
-      {!following && (
-        <button
-          type="button"
-          onClick={onFollow}
-          style={{
-            padding: '6px 13px',
-            background: 'var(--crimson)',
-            color: '#FFF',
-            border: 'none',
-            borderRadius: 40,
-            fontSize: 11,
-            fontWeight: 700,
-            fontFamily: 'inherit',
-            letterSpacing: 0.1,
-            cursor: 'pointer',
-            boxShadow: '0 4px 14px rgba(196, 30, 58, 0.4)',
-            marginBottom: 4,
-          }}
-        >
-          Follow
-        </button>
-      )}
+      <button
+        type="button"
+        onClick={onFollow}
+        style={{
+          padding: '5px 12px',
+          background: following ? 'rgba(20, 18, 24, 0.72)' : 'var(--crimson)',
+          color: following ? 'var(--bone-dim)' : '#FFF',
+          border: following
+            ? '1px solid rgba(245, 240, 230, 0.16)'
+            : 'none',
+          borderRadius: 40,
+          fontSize: 10.5,
+          fontWeight: 700,
+          fontFamily: 'inherit',
+          letterSpacing: 0.1,
+          cursor: 'pointer',
+          boxShadow: following
+            ? 'none'
+            : '0 4px 14px rgba(196, 30, 58, 0.4)',
+          backdropFilter: following ? 'blur(16px)' : undefined,
+          WebkitBackdropFilter: following ? 'blur(16px)' : undefined,
+          transition:
+            'background .25s var(--ease), color .25s var(--ease), border-color .25s var(--ease)',
+        }}
+      >
+        {following ? 'Following' : 'Follow'}
+      </button>
 
       <button
         type="button"
@@ -210,12 +219,12 @@ export default function Rail({
           display: 'flex',
           flexDirection: 'column',
           alignItems: 'center',
-          gap: 4,
+          gap: 3,
           fontFamily: 'inherit',
         }}
       >
         <span style={railIconStyle('crimson', liked)}>
-          <Icon name="heart" size={22} filled={liked} />
+          <Icon name="heart" size={21} filled={liked} />
         </span>
         <span style={railLabelStyle('crimson', liked)}>Like</span>
       </button>
@@ -231,12 +240,12 @@ export default function Rail({
           display: 'flex',
           flexDirection: 'column',
           alignItems: 'center',
-          gap: 4,
+          gap: 3,
           fontFamily: 'inherit',
         }}
       >
         <span style={railIconStyle('bone', false)}>
-          <Icon name="comment" size={22} />
+          <Icon name="comment" size={21} />
         </span>
         <span style={railLabelStyle('bone', false)}>Comment</span>
       </button>
@@ -252,12 +261,12 @@ export default function Rail({
           display: 'flex',
           flexDirection: 'column',
           alignItems: 'center',
-          gap: 4,
+          gap: 3,
           fontFamily: 'inherit',
         }}
       >
         <span style={railIconStyle('bone', false)}>
-          <Icon name="share" size={22} />
+          <Icon name="share" size={21} />
         </span>
         <span style={railLabelStyle('bone', false)}>Share</span>
       </button>
@@ -273,12 +282,12 @@ export default function Rail({
           display: 'flex',
           flexDirection: 'column',
           alignItems: 'center',
-          gap: 4,
+          gap: 3,
           fontFamily: 'inherit',
         }}
       >
         <span style={railIconStyle('gold', saved)}>
-          <Icon name="save" size={22} filled={saved} />
+          <Icon name="save" size={21} filled={saved} />
         </span>
         <span style={railLabelStyle('gold', saved)}>Save</span>
       </button>
@@ -294,12 +303,12 @@ export default function Rail({
           display: 'flex',
           flexDirection: 'column',
           alignItems: 'center',
-          gap: 4,
+          gap: 3,
           fontFamily: 'inherit',
         }}
       >
         <span style={railIconStyle('bone', false)}>
-          <Icon name="more" size={22} />
+          <Icon name="more" size={21} />
         </span>
         <span style={railLabelStyle('bone', false)}>More</span>
       </button>
