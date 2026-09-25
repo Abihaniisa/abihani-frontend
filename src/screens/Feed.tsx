@@ -40,7 +40,6 @@ export default function Feed({ tab, onOpenSeller }: FeedProps) {
   }, [toastMsg]);
 
   useEffect(() => {
-    // Only fetch if the store is empty. No loading flash.
     if (posts.length > 0) return;
     let cancelled = false;
     const load = tab === 'foryou' ? fetchForYouPosts : fetchFollowingPosts;
@@ -102,6 +101,10 @@ export default function Feed({ tab, onOpenSeller }: FeedProps) {
     setFollowing((f) => ({ ...f, [sellerId]: !f[sellerId] }));
   }
 
+  function handleSellerTap(sellerId: string) {
+    onOpenSeller(sellerId);
+  }
+
   if (posts.length === 0) {
     return (
       <div
@@ -160,10 +163,10 @@ export default function Feed({ tab, onOpenSeller }: FeedProps) {
             onComment={() => openComments(p)}
             onShare={() => setShareFor(p)}
             onMore={() => handleMore(p)}
-            onSellerTap={() => onOpenSeller(p.seller.id)}
+            onSellerTap={() => handleSellerTap(p.seller.id)}
             onFollow={() => toggleFollow(p.seller.id)}
             onBuy={() => handleBuy(p)}
-            onSwipeToProfile={() => onOpenSeller(p.seller.id)}
+            onSwipeToProfile={() => handleSellerTap(p.seller.id)}
           />
         ))}
 
@@ -211,7 +214,9 @@ export default function Feed({ tab, onOpenSeller }: FeedProps) {
                   width: 36,
                   height: 36,
                   borderRadius: '50%',
-                  backgroundImage: `url('${c.user.avatarUrl ?? ''}')`,
+                  backgroundImage: c.user.avatarUrl
+                    ? `url('${c.user.avatarUrl}')`
+                    : undefined,
                   backgroundSize: 'cover',
                   backgroundPosition: 'center',
                   flexShrink: 0,
@@ -219,8 +224,16 @@ export default function Feed({ tab, onOpenSeller }: FeedProps) {
                     ? undefined
                     : 'linear-gradient(135deg, #2B2733, #17151C)',
                   border: '1px solid rgba(245, 240, 230, 0.10)',
+                  color: 'var(--bone)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  fontSize: 14,
+                  fontWeight: 800,
                 }}
-              />
+              >
+                {!c.user.avatarUrl && c.user.name.charAt(0).toUpperCase()}
+              </span>
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div
                   style={{
@@ -355,7 +368,9 @@ export default function Feed({ tab, onOpenSeller }: FeedProps) {
                       ? '1px solid rgba(245, 240, 230, 0.06)'
                       : 'none',
                   textAlign: 'left',
-                  color: label.startsWith('Block') ? '#FF5C78' : 'var(--bone)',
+                  color: label.startsWith('Block')
+                    ? '#FF5C78'
+                    : 'var(--bone)',
                   fontFamily: 'inherit',
                   fontSize: 14.5,
                   cursor: 'pointer',

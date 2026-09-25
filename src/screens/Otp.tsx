@@ -159,7 +159,7 @@ export default function Otp({ email, onBack, onVerify }: OtpProps) {
             cursor: 'pointer',
           }}
         >
-          {BUTTONS.CHANGE_NUMBER}
+          {BUTTONS.CHANGE_EMAIL}
         </button>
       </div>
     </div>
