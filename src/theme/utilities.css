@@ -1,0 +1,98 @@
+/* ABIHANI — Small shared utilities */
+
+.screen {
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  background: var(--ink);
+  color: var(--bone);
+}
+
+.screen-padded {
+  padding-top: var(--safe-top);
+  padding-bottom: var(--safe-bottom);
+}
+
+.center {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.center-text {
+  text-align: center;
+}
+
+.stack {
+  display: flex;
+  flex-direction: column;
+}
+
+.stack-8 {
+  gap: 8px;
+}
+
+.stack-12 {
+  gap: 12px;
+}
+
+.stack-16 {
+  gap: 16px;
+}
+
+.row {
+  display: flex;
+  align-items: center;
+}
+
+.row-between {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.grow {
+  flex: 1;
+  min-width: 0;
+}
+
+.muted {
+  color: var(--bone-dim);
+}
+
+.faint {
+  color: var(--bone-faint);
+}
+
+.gold {
+  color: var(--gold);
+}
+
+.crimson {
+  color: var(--crimson);
+}
+
+.text-s {
+  font-size: 13px;
+}
+
+.text-m {
+  font-size: 15px;
+}
+
+.text-l {
+  font-size: 20px;
+}
+
+.text-xl {
+  font-size: 26px;
+  font-weight: 800;
+  letter-spacing: -0.6px;
+}
+
+.nowrap {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}

@@ -1,1 +1,115 @@
-. 
+/* ABIHANI — Base resets and typography */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html,
+body {
+  height: 100%;
+  background: var(--ink);
+  color: var(--bone);
+  font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display',
+    'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  font-size: 15px;
+  line-height: 1.45;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  overscroll-behavior: none;
+  letter-spacing: -0.01em;
+}
+
+body {
+  min-height: 100dvh;
+  overflow-x: hidden;
+}
+
+#root {
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+}
+
+img,
+video {
+  display: block;
+  max-width: 100%;
+  height: auto;
+}
+
+button {
+  font: inherit;
+  color: inherit;
+  background: none;
+  border: none;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+input,
+textarea,
+select {
+  font: inherit;
+  color: inherit;
+  background: none;
+  border: none;
+  outline: none;
+}
+
+input,
+textarea {
+  -webkit-appearance: none;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+::selection {
+  background: rgba(196, 30, 58, 0.45);
+  color: #fff;
+}
+
+/* Focus — never a blue rectangle. Follows the shape of the element. */
+*:focus {
+  outline: none;
+}
+
+*:focus-visible {
+  outline: none;
+  box-shadow:
+    0 0 0 2px var(--ink),
+    0 0 0 4px rgba(231, 194, 122, 0.55);
+  border-radius: inherit;
+}
+
+/* Headings */
+h1,
+h2,
+h3,
+h4 {
+  letter-spacing: -0.5px;
+  line-height: 1.15;
+  font-weight: 800;
+}
+
+p {
+  line-height: 1.5;
+}
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
