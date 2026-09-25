@@ -1,4 +1,8 @@
-export default function Admin() {
+type FeedProps = {
+  tab: 'foryou' | 'following';
+};
+
+export default function Feed({ tab }: FeedProps) {
   return (
     <div
       style={{
@@ -12,7 +16,7 @@ export default function Admin() {
         letterSpacing: '-0.3px',
       }}
     >
-      Admin
+      Feed {tab === 'following' ? '· Following' : '· For You'}
     </div>
   );
 }

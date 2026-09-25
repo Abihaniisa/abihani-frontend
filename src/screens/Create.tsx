@@ -1,4 +1,4 @@
-export default function Admin() {
+export default function Create() {
   return (
     <div
       style={{
@@ -12,7 +12,7 @@ export default function Admin() {
         letterSpacing: '-0.3px',
       }}
     >
-      Admin
+      New post
     </div>
   );
 }

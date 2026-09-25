@@ -1,4 +1,4 @@
-export default function Admin() {
+export default function Orders() {
   return (
     <div
       style={{
@@ -12,7 +12,7 @@ export default function Admin() {
         letterSpacing: '-0.3px',
       }}
     >
-      Admin
+      Orders
     </div>
   );
 }
