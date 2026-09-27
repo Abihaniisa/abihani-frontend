@@ -1,3 +1,9 @@
+/* ABIHANI — Right Rail
+ * Fixing: BUG-05 (rail lifts when card expands)
+ * Wirings: none. This is a UI component. It receives cardOpen
+ * from Post, and calls parent handlers for like, save, comment,
+ * share, more, avatar, and follow. */
+
 import Icon from '../common/Icon';
 import type { Post } from '../../types/post.types';
 
@@ -107,7 +113,7 @@ export default function Rail({
   onAvatar,
   onFollow,
 }: RailProps) {
-  const railBottom = cardOpen ? 280 : 210;
+  const railBottom = cardOpen ? 300 : 220;
 
   return (
     <div
@@ -185,7 +191,9 @@ export default function Rail({
         onClick={onFollow}
         style={{
           padding: '5px 12px',
-          background: following ? 'rgba(20, 18, 24, 0.72)' : 'var(--crimson)',
+          background: following
+            ? 'rgba(20, 18, 24, 0.72)'
+            : 'var(--crimson)',
           color: following ? 'var(--bone-dim)' : '#FFF',
           border: following
             ? '1px solid rgba(245, 240, 230, 0.16)'
