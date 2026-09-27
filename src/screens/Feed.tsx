@@ -1,24 +1,8 @@
-/* ABIHANI — Feed
- * Fixing: BUG-01 (scroll position preserved),
- *         BUG-07 (chrome hides when viewer opens),
- *         BUG-10 (reply state to composer)
- * Wirings:
- *   - onOpenSeller → parent opens PostViewer overlay.
- *   - Like, save, comment, share, more, follow, buy all wired
- *     through Post to the correct handlers.
- *   - Comment sheet mounts the Comment + CommentComposer stack.
- *   - Share sheet closes on tap.
- *   - More sheet closes on tap.
- *   - Buy sheet mounted as a sibling overlay.
- *   - Feed scroll position saved on unmount, restored on mount. */
-
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import Post from '../components/feed/Post';
 import Sheet from '../components/common/Sheet';
-import Comment from '../components/feed/Comment';
 import CommentComposer from '../components/feed/CommentComposer';
 import FeedEnd from '../components/feed/FeedEnd';
-import BuySheet from '../components/feed/BuySheet';
 import { useFeed, useSession } from '../store/feed.store';
 import {
   fetchForYouPosts,
@@ -26,14 +10,12 @@ import {
   fetchCommentsForPost,
 } from '../services/post.service';
 import type { Post as PostType } from '../types/post.types';
-import type { Comment as CommentType } from '../types/comment.types';
+import type { Comment } from '../types/comment.types';
 
 type FeedProps = {
   tab: 'foryou' | 'following';
   onOpenSeller: (sellerId: string) => void;
 };
-
-const SCROLL_KEY = 'abihani.feed.scrollY';
 
 export default function Feed({ tab, onOpenSeller }: FeedProps) {
   const posts = useFeed((s) => s.posts);
@@ -44,16 +26,15 @@ export default function Feed({ tab, onOpenSeller }: FeedProps) {
   const toggleSaved = useSession((s) => s.toggleSaved);
 
   const [commentsFor, setCommentsFor] = useState<PostType | null>(null);
-  const [comments, setComments] = useState<CommentType[]>([]);
+  const [comments, setComments] = useState<Comment[]>([]);
   const [commentsLoading, setCommentsLoading] = useState(false);
-  const [replyTo, setReplyTo] = useState<string | null>(null);
+  const [replyTo, setReplyTo] = useState<{ id: string; name: string } | null>(
+    null,
+  );
   const [shareFor, setShareFor] = useState<PostType | null>(null);
   const [moreFor, setMoreFor] = useState<PostType | null>(null);
-  const [buyFor, setBuyFor] = useState<PostType | null>(null);
   const [following, setFollowing] = useState<Record<string, boolean>>({});
   const [toastMsg, setToastMsg] = useState<string | null>(null);
-
-  const scrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (!toastMsg) return;
@@ -74,18 +55,6 @@ export default function Feed({ tab, onOpenSeller }: FeedProps) {
     };
   }, [tab, posts.length, setPosts]);
 
-  useEffect(() => {
-    const el = scrollRef.current;
-    if (!el) return;
-    const saved = Number(sessionStorage.getItem(SCROLL_KEY) || '0');
-    if (saved > 0) el.scrollTop = saved;
-    const onScroll = () => {
-      sessionStorage.setItem(SCROLL_KEY, String(el.scrollTop));
-    };
-    el.addEventListener('scroll', onScroll, { passive: true });
-    return () => el.removeEventListener('scroll', onScroll);
-  }, [posts.length]);
-
   async function openComments(post: PostType) {
     setCommentsFor(post);
     setReplyTo(null);
@@ -95,14 +64,20 @@ export default function Feed({ tab, onOpenSeller }: FeedProps) {
     setCommentsLoading(false);
   }
 
+  function closeComments() {
+    setCommentsFor(null);
+    setReplyTo(null);
+    setComments([]);
+  }
+
   function sendComment(text: string) {
     if (!commentsFor) return;
-    const optimistic: CommentType = {
+    const optimistic: Comment = {
       id: `c_local_${Date.now()}`,
       postId: commentsFor.id,
       user: {
         id: 'me',
-        name: replyTo ? `@${replyTo}` : 'You',
+        name: 'You',
         avatarUrl: null,
         verified: false,
       },
@@ -113,8 +88,20 @@ export default function Feed({ tab, onOpenSeller }: FeedProps) {
       seller: false,
       replies: [],
     };
-    setComments((c) => [...c, optimistic]);
-    setReplyTo(null);
+
+    if (replyTo) {
+      /* Nest under the parent comment. */
+      setComments((list) =>
+        list.map((c) =>
+          c.id === replyTo.id
+            ? { ...c, replies: [...c.replies, optimistic] }
+            : c,
+        ),
+      );
+      setReplyTo(null);
+    } else {
+      setComments((list) => [...list, optimistic]);
+    }
   }
 
   function handleShareOption(label: string) {
@@ -125,8 +112,8 @@ export default function Feed({ tab, onOpenSeller }: FeedProps) {
     else setToastMsg(label);
   }
 
-  function handleBuy(post: PostType) {
-    setBuyFor(post);
+  function handleBuy(_post: PostType) {
+    setToastMsg('Buy flow coming soon');
   }
 
   function handleMore(post: PostType) {
@@ -177,11 +164,10 @@ export default function Feed({ tab, onOpenSeller }: FeedProps) {
   return (
     <>
       <div
-        ref={scrollRef}
         style={{
           height: '100%',
           overflowY: 'scroll',
-          scrollSnapType: 'y mandatory',
+          scrollSnapType: 'y proximity',
           overscrollBehaviorY: 'contain',
           scrollbarWidth: 'none',
           msOverflowStyle: 'none',
@@ -216,42 +202,81 @@ export default function Feed({ tab, onOpenSeller }: FeedProps) {
           subtitle={
             commentsLoading
               ? 'Loading…'
-              : `${comments.length} comment${
-                  comments.length === 1 ? '' : 's'
+              : `${countComments(comments)} comment${
+                  countComments(comments) === 1 ? '' : 's'
                 }`
           }
-          onClose={() => {
-            setCommentsFor(null);
-            setReplyTo(null);
-          }}
+          onClose={closeComments}
         >
-          {comments.length === 0 && !commentsLoading && (
+          <div
+            style={{
+              paddingBottom: 20,
+            }}
+          >
+            {comments.length === 0 && !commentsLoading && (
+              <div
+                style={{
+                  padding: '20px 0 24px',
+                  textAlign: 'center',
+                  color: 'var(--bone-dim)',
+                  fontSize: 13.5,
+                }}
+              >
+                No comments yet. Be the first to ask something.
+              </div>
+            )}
+
+            {comments.map((c) => (
+              <CommentBlock
+                key={c.id}
+                comment={c}
+                onReply={() => setReplyTo({ id: c.id, name: c.user.name })}
+              />
+            ))}
+          </div>
+
+          {replyTo && (
             <div
               style={{
-                padding: '20px 0 24px',
-                textAlign: 'center',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                padding: '8px 12px',
+                marginBottom: 6,
+                background: 'rgba(245, 240, 230, 0.06)',
+                border: '1px solid rgba(245, 240, 230, 0.10)',
+                borderRadius: 12,
+                fontSize: 12.5,
                 color: 'var(--bone-dim)',
-                fontSize: 13.5,
               }}
             >
-              No comments yet. Be the first to ask something.
+              <span>
+                Replying to{' '}
+                <strong style={{ color: 'var(--bone)' }}>
+                  @{replyTo.name}
+                </strong>
+              </span>
+              <button
+                type="button"
+                onClick={() => setReplyTo(null)}
+                aria-label="Cancel reply"
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  color: 'var(--bone-dim)',
+                  fontFamily: 'inherit',
+                  fontSize: 12.5,
+                  fontWeight: 700,
+                  cursor: 'pointer',
+                  padding: 4,
+                }}
+              >
+                Cancel
+              </button>
             </div>
           )}
 
-          {comments.map((c) => (
-            <Comment
-              key={c.id}
-              comment={c}
-              onReply={(name) => setReplyTo(name)}
-            />
-          ))}
-
-          <CommentComposer
-            userAvatarUrl={null}
-            replyTo={replyTo}
-            onSubmit={sendComment}
-            onCancelReply={() => setReplyTo(null)}
-          />
+          <CommentComposer userAvatarUrl={null} onSubmit={sendComment} />
         </Sheet>
       )}
 
@@ -328,25 +353,6 @@ export default function Feed({ tab, onOpenSeller }: FeedProps) {
         </Sheet>
       )}
 
-      {buyFor && (
-        <BuySheet
-          post={buyFor}
-          onClose={() => setBuyFor(null)}
-          onPay={(note) => {
-            setBuyFor(null);
-            setToastMsg(
-              note
-                ? `Order created with note: ${note}`
-                : 'Order created',
-            );
-          }}
-          onAsk={() => {
-            setBuyFor(null);
-            setToastMsg('Private thread coming in Stage 8');
-          }}
-        />
-      )}
-
       {toastMsg && (
         <div
           style={{
@@ -373,5 +379,160 @@ export default function Feed({ tab, onOpenSeller }: FeedProps) {
         </div>
       )}
     </>
+  );
+}
+
+function countComments(list: Comment[]): number {
+  let n = 0;
+  for (const c of list) {
+    n += 1;
+    if (c.replies && c.replies.length > 0) n += c.replies.length;
+  }
+  return n;
+}
+
+function CommentBlock({
+  comment,
+  onReply,
+  depth = 0,
+}: {
+  comment: Comment;
+  onReply: () => void;
+  depth?: number;
+}) {
+  return (
+    <div style={{ marginLeft: depth * 24 }}>
+      <div
+        style={{
+          display: 'flex',
+          gap: 11,
+          padding: '12px 0',
+          alignItems: 'flex-start',
+          borderBottom: '1px solid rgba(245, 240, 230, 0.06)',
+        }}
+      >
+        <span
+          style={{
+            width: 36,
+            height: 36,
+            borderRadius: '50%',
+            backgroundImage: comment.user.avatarUrl
+              ? `url('${comment.user.avatarUrl}')`
+              : undefined,
+            backgroundSize: 'cover',
+            backgroundPosition: 'center',
+            flexShrink: 0,
+            background: comment.user.avatarUrl
+              ? undefined
+              : 'linear-gradient(135deg, #2B2733, #17151C)',
+            border: '1px solid rgba(245, 240, 230, 0.10)',
+            color: 'var(--bone)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            fontSize: 14,
+            fontWeight: 800,
+          }}
+        >
+          {!comment.user.avatarUrl &&
+            comment.user.name.charAt(0).toUpperCase()}
+        </span>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 6,
+              marginBottom: 4,
+              flexWrap: 'wrap',
+            }}
+          >
+            <span
+              style={{
+                fontSize: 13,
+                fontWeight: 700,
+                color: 'var(--bone)',
+              }}
+            >
+              {comment.user.name}
+            </span>
+            {comment.verifiedPurchase && (
+              <span
+                style={{
+                  fontSize: 9.5,
+                  fontWeight: 800,
+                  letterSpacing: 0.3,
+                  textTransform: 'uppercase',
+                  color: 'var(--gold)',
+                  background: 'rgba(231, 194, 122, 0.16)',
+                  border: '1px solid rgba(231, 194, 122, 0.45)',
+                  padding: '2px 7px',
+                  borderRadius: 40,
+                }}
+              >
+                Verified Purchase
+              </span>
+            )}
+            {comment.seller && (
+              <span
+                style={{
+                  fontSize: 9.5,
+                  fontWeight: 800,
+                  letterSpacing: 0.3,
+                  textTransform: 'uppercase',
+                  color: '#FF5C78',
+                  background: 'rgba(196, 30, 58, 0.14)',
+                  border: '1px solid rgba(196, 30, 58, 0.45)',
+                  padding: '2px 7px',
+                  borderRadius: 40,
+                }}
+              >
+                Seller
+              </span>
+            )}
+            <span style={{ fontSize: 11, color: 'var(--bone-faint)' }}>
+              {comment.time}
+            </span>
+          </div>
+          <div
+            style={{
+              fontSize: 13.5,
+              color: 'var(--bone)',
+              lineHeight: 1.5,
+            }}
+          >
+            {comment.text}
+          </div>
+          <button
+            type="button"
+            onClick={onReply}
+            style={{
+              marginTop: 6,
+              background: 'none',
+              border: 'none',
+              padding: 0,
+              color: 'var(--bone-dim)',
+              fontFamily: 'inherit',
+              fontSize: 12,
+              fontWeight: 700,
+              letterSpacing: '-0.1px',
+              cursor: 'pointer',
+            }}
+          >
+            Reply
+          </button>
+        </div>
+      </div>
+
+      {comment.replies &&
+        comment.replies.map((r) => (
+          <CommentBlock
+            key={r.id}
+            comment={r}
+            onReply={onReply}
+            depth={depth + 1}
+          />
+        ))}
+    </div>
   );
 }
