@@ -1,8 +1,24 @@
-import { useEffect, useState } from 'react';
+/* ABIHANI — Feed
+ * Fixing: BUG-01 (scroll position preserved),
+ *         BUG-07 (chrome hides when viewer opens),
+ *         BUG-10 (reply state to composer)
+ * Wirings:
+ *   - onOpenSeller → parent opens PostViewer overlay.
+ *   - Like, save, comment, share, more, follow, buy all wired
+ *     through Post to the correct handlers.
+ *   - Comment sheet mounts the Comment + CommentComposer stack.
+ *   - Share sheet closes on tap.
+ *   - More sheet closes on tap.
+ *   - Buy sheet mounted as a sibling overlay.
+ *   - Feed scroll position saved on unmount, restored on mount. */
+
+import { useEffect, useRef, useState } from 'react';
 import Post from '../components/feed/Post';
 import Sheet from '../components/common/Sheet';
+import Comment from '../components/feed/Comment';
 import CommentComposer from '../components/feed/CommentComposer';
 import FeedEnd from '../components/feed/FeedEnd';
+import BuySheet from '../components/feed/BuySheet';
 import { useFeed, useSession } from '../store/feed.store';
 import {
   fetchForYouPosts,
@@ -10,12 +26,14 @@ import {
   fetchCommentsForPost,
 } from '../services/post.service';
 import type { Post as PostType } from '../types/post.types';
-import type { Comment } from '../types/comment.types';
+import type { Comment as CommentType } from '../types/comment.types';
 
 type FeedProps = {
   tab: 'foryou' | 'following';
   onOpenSeller: (sellerId: string) => void;
 };
+
+const SCROLL_KEY = 'abihani.feed.scrollY';
 
 export default function Feed({ tab, onOpenSeller }: FeedProps) {
   const posts = useFeed((s) => s.posts);
@@ -26,12 +44,16 @@ export default function Feed({ tab, onOpenSeller }: FeedProps) {
   const toggleSaved = useSession((s) => s.toggleSaved);
 
   const [commentsFor, setCommentsFor] = useState<PostType | null>(null);
-  const [comments, setComments] = useState<Comment[]>([]);
+  const [comments, setComments] = useState<CommentType[]>([]);
   const [commentsLoading, setCommentsLoading] = useState(false);
+  const [replyTo, setReplyTo] = useState<string | null>(null);
   const [shareFor, setShareFor] = useState<PostType | null>(null);
   const [moreFor, setMoreFor] = useState<PostType | null>(null);
+  const [buyFor, setBuyFor] = useState<PostType | null>(null);
   const [following, setFollowing] = useState<Record<string, boolean>>({});
   const [toastMsg, setToastMsg] = useState<string | null>(null);
+
+  const scrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (!toastMsg) return;
@@ -52,8 +74,21 @@ export default function Feed({ tab, onOpenSeller }: FeedProps) {
     };
   }, [tab, posts.length, setPosts]);
 
+  useEffect(() => {
+    const el = scrollRef.current;
+    if (!el) return;
+    const saved = Number(sessionStorage.getItem(SCROLL_KEY) || '0');
+    if (saved > 0) el.scrollTop = saved;
+    const onScroll = () => {
+      sessionStorage.setItem(SCROLL_KEY, String(el.scrollTop));
+    };
+    el.addEventListener('scroll', onScroll, { passive: true });
+    return () => el.removeEventListener('scroll', onScroll);
+  }, [posts.length]);
+
   async function openComments(post: PostType) {
     setCommentsFor(post);
+    setReplyTo(null);
     setCommentsLoading(true);
     const list = await fetchCommentsForPost(post.id);
     setComments(list);
@@ -62,12 +97,12 @@ export default function Feed({ tab, onOpenSeller }: FeedProps) {
 
   function sendComment(text: string) {
     if (!commentsFor) return;
-    const optimistic: Comment = {
+    const optimistic: CommentType = {
       id: `c_local_${Date.now()}`,
       postId: commentsFor.id,
       user: {
         id: 'me',
-        name: 'You',
+        name: replyTo ? `@${replyTo}` : 'You',
         avatarUrl: null,
         verified: false,
       },
@@ -79,6 +114,7 @@ export default function Feed({ tab, onOpenSeller }: FeedProps) {
       replies: [],
     };
     setComments((c) => [...c, optimistic]);
+    setReplyTo(null);
   }
 
   function handleShareOption(label: string) {
@@ -89,8 +125,8 @@ export default function Feed({ tab, onOpenSeller }: FeedProps) {
     else setToastMsg(label);
   }
 
-  function handleBuy(_post: PostType) {
-    setToastMsg('Buy flow coming soon');
+  function handleBuy(post: PostType) {
+    setBuyFor(post);
   }
 
   function handleMore(post: PostType) {
@@ -141,6 +177,7 @@ export default function Feed({ tab, onOpenSeller }: FeedProps) {
   return (
     <>
       <div
+        ref={scrollRef}
         style={{
           height: '100%',
           overflowY: 'scroll',
@@ -183,7 +220,10 @@ export default function Feed({ tab, onOpenSeller }: FeedProps) {
                   comments.length === 1 ? '' : 's'
                 }`
           }
-          onClose={() => setCommentsFor(null)}
+          onClose={() => {
+            setCommentsFor(null);
+            setReplyTo(null);
+          }}
         >
           {comments.length === 0 && !commentsLoading && (
             <div
@@ -199,114 +239,19 @@ export default function Feed({ tab, onOpenSeller }: FeedProps) {
           )}
 
           {comments.map((c) => (
-            <div
+            <Comment
               key={c.id}
-              style={{
-                display: 'flex',
-                gap: 11,
-                padding: '14px 0',
-                alignItems: 'flex-start',
-                borderBottom: '1px solid rgba(245, 240, 230, 0.06)',
-              }}
-            >
-              <span
-                style={{
-                  width: 36,
-                  height: 36,
-                  borderRadius: '50%',
-                  backgroundImage: c.user.avatarUrl
-                    ? `url('${c.user.avatarUrl}')`
-                    : undefined,
-                  backgroundSize: 'cover',
-                  backgroundPosition: 'center',
-                  flexShrink: 0,
-                  background: c.user.avatarUrl
-                    ? undefined
-                    : 'linear-gradient(135deg, #2B2733, #17151C)',
-                  border: '1px solid rgba(245, 240, 230, 0.10)',
-                  color: 'var(--bone)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  fontSize: 14,
-                  fontWeight: 800,
-                }}
-              >
-                {!c.user.avatarUrl && c.user.name.charAt(0).toUpperCase()}
-              </span>
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <div
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 6,
-                    marginBottom: 4,
-                    flexWrap: 'wrap',
-                  }}
-                >
-                  <span
-                    style={{
-                      fontSize: 13,
-                      fontWeight: 700,
-                      color: 'var(--bone)',
-                    }}
-                  >
-                    {c.user.name}
-                  </span>
-                  {c.verifiedPurchase && (
-                    <span
-                      style={{
-                        fontSize: 9.5,
-                        fontWeight: 800,
-                        letterSpacing: 0.3,
-                        textTransform: 'uppercase',
-                        color: 'var(--gold)',
-                        background: 'rgba(231, 194, 122, 0.16)',
-                        border: '1px solid rgba(231, 194, 122, 0.45)',
-                        padding: '2px 7px',
-                        borderRadius: 40,
-                      }}
-                    >
-                      Verified Purchase
-                    </span>
-                  )}
-                  {c.seller && (
-                    <span
-                      style={{
-                        fontSize: 9.5,
-                        fontWeight: 800,
-                        letterSpacing: 0.3,
-                        textTransform: 'uppercase',
-                        color: '#FF5C78',
-                        background: 'rgba(196, 30, 58, 0.14)',
-                        border: '1px solid rgba(196, 30, 58, 0.45)',
-                        padding: '2px 7px',
-                        borderRadius: 40,
-                      }}
-                    >
-                      Seller
-                    </span>
-                  )}
-                  <span
-                    style={{ fontSize: 11, color: 'var(--bone-faint)' }}
-                  >
-                    {c.time}
-                  </span>
-                </div>
-                <div
-                  style={{
-                    fontSize: 13.5,
-                    color: 'var(--bone)',
-                    lineHeight: 1.5,
-                  }}
-                >
-                  {c.text}
-                </div>
-              </div>
-            </div>
+              comment={c}
+              onReply={(name) => setReplyTo(name)}
+            />
           ))}
 
-          <CommentComposer userAvatarUrl={null} onSubmit={sendComment} />
+          <CommentComposer
+            userAvatarUrl={null}
+            replyTo={replyTo}
+            onSubmit={sendComment}
+            onCancelReply={() => setReplyTo(null)}
+          />
         </Sheet>
       )}
 
@@ -381,6 +326,25 @@ export default function Feed({ tab, onOpenSeller }: FeedProps) {
             ),
           )}
         </Sheet>
+      )}
+
+      {buyFor && (
+        <BuySheet
+          post={buyFor}
+          onClose={() => setBuyFor(null)}
+          onPay={(note) => {
+            setBuyFor(null);
+            setToastMsg(
+              note
+                ? `Order created with note: ${note}`
+                : 'Order created',
+            );
+          }}
+          onAsk={() => {
+            setBuyFor(null);
+            setToastMsg('Private thread coming in Stage 8');
+          }}
+        />
       )}
 
       {toastMsg && (
