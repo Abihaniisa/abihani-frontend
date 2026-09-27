@@ -1,6 +1,17 @@
-import { useEffect, useState } from 'react';
+/* ABIHANI — Post Viewer
+ * Fixing: BUG-07 (full-screen overlay, no chrome bleed),
+ *         BUG-08 (owns its own scroll, no feed bleed)
+ * Wirings:
+ *   - Back arrow → onClose → parent hides viewer, feed
+ *     scroll position preserved.
+ *   - Swipe down from top → onClose → same.
+ *   - Vertical scroll through that seller's posts only.
+ *   - Each post in the viewer has its own like, save,
+ *     comment, share wiring via Post component. */
+
+import { useEffect, useRef, useState } from 'react';
 import Post from '../components/feed/Post';
-import { useFeed, useSession } from '../store/feed.store';
+import { useSession } from '../store/feed.store';
 import { fetchSellerPosts } from '../services/post.service';
 import type { Post as PostType } from '../types/post.types';
 
@@ -12,11 +23,16 @@ type PostViewerProps = {
 export default function PostViewer({ sellerId, onClose }: PostViewerProps) {
   const [posts, setPosts] = useState<PostType[]>([]);
   const [loading, setLoading] = useState(true);
-  const setGlobalPosts = useFeed((s) => s.setPosts);
   const liked = useSession((s) => s.liked);
   const saved = useSession((s) => s.saved);
   const toggleLiked = useSession((s) => s.toggleLiked);
   const toggleSaved = useSession((s) => s.toggleSaved);
+
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const touchRef = useRef<{ startY: number; active: boolean }>({
+    startY: 0,
+    active: false,
+  });
 
   useEffect(() => {
     let cancelled = false;
@@ -31,9 +47,24 @@ export default function PostViewer({ sellerId, onClose }: PostViewerProps) {
     };
   }, [sellerId]);
 
-  function close() {
-    setGlobalPosts([]);
-    onClose();
+  function onTouchStart(e: React.TouchEvent<HTMLDivElement>) {
+    touchRef.current = {
+      startY: e.touches[0].clientY,
+      active: true,
+    };
+  }
+
+  function onTouchEnd(e: React.TouchEvent<HTMLDivElement>) {
+    const s = touchRef.current;
+    if (!s.active) return;
+    s.active = false;
+    const scrollEl = scrollRef.current;
+    if (!scrollEl) return;
+    if (scrollEl.scrollTop > 4) return;
+    const dy = e.changedTouches[0].clientY - s.startY;
+    if (dy > 90) {
+      onClose();
+    }
   }
 
   return (
@@ -61,11 +92,12 @@ export default function PostViewer({ sellerId, onClose }: PostViewerProps) {
           padding: 'calc(var(--safe-top) + 14px) 16px 14px',
           background:
             'linear-gradient(to bottom, rgba(0,0,0,0.9), rgba(0,0,0,0))',
+          pointerEvents: 'none',
         }}
       >
         <button
           type="button"
-          onClick={close}
+          onClick={onClose}
           aria-label="Close"
           style={{
             width: 36,
@@ -79,6 +111,7 @@ export default function PostViewer({ sellerId, onClose }: PostViewerProps) {
             alignItems: 'center',
             justifyContent: 'center',
             padding: 0,
+            pointerEvents: 'auto',
           }}
         >
           <svg
@@ -128,10 +161,16 @@ export default function PostViewer({ sellerId, onClose }: PostViewerProps) {
 
       {!loading && posts.length > 0 && (
         <div
+          ref={scrollRef}
+          onTouchStart={onTouchStart}
+          onTouchEnd={onTouchEnd}
           style={{
             flex: 1,
+            minHeight: 0,
             overflowY: 'scroll',
+            overflowX: 'hidden',
             scrollSnapType: 'y mandatory',
+            overscrollBehaviorY: 'contain',
             scrollbarWidth: 'none',
             msOverflowStyle: 'none',
             WebkitOverflowScrolling: 'touch',
