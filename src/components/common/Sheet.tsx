@@ -1,3 +1,14 @@
+/* ABIHANI — Sheet
+ * Fixing: BUG-03 (no blue outline inside sheet),
+ *         BUG-09 (rounded corners clip children cleanly)
+ * Wirings:
+ *   - onClose called on scrim tap
+ *   - onClose called on Escape key
+ *   - Children render inside a scroll container with no
+ *     overflow bleed
+ *   - Every sheet in the app uses this component:
+ *     comments, share, more, buy, terms, logout */
+
 import { useEffect } from 'react';
 
 type SheetProps = {
@@ -32,6 +43,7 @@ export default function Sheet({
           backdropFilter: 'blur(6px)',
           WebkitBackdropFilter: 'blur(6px)',
           zIndex: 90,
+          WebkitTapHighlightColor: 'transparent',
         }}
       />
       <div
@@ -55,6 +67,7 @@ export default function Sheet({
           overflow: 'hidden',
           display: 'flex',
           flexDirection: 'column',
+          WebkitTapHighlightColor: 'transparent',
         }}
       >
         <div
@@ -80,7 +93,7 @@ export default function Sheet({
                 fontWeight: 700,
                 color: 'var(--bone)',
                 letterSpacing: '-0.5px',
-                marginBottom: subtitle ? 6 : 18,
+                marginBottom: subtitle ? 6 : 16,
               }}
             >
               {title}
@@ -92,7 +105,7 @@ export default function Sheet({
               style={{
                 fontSize: 13.5,
                 color: 'var(--bone-faint)',
-                marginBottom: 16,
+                marginBottom: 14,
                 lineHeight: 1.5,
               }}
             >
@@ -106,14 +119,35 @@ export default function Sheet({
             flex: 1,
             minHeight: 0,
             overflowY: 'auto',
+            overflowX: 'hidden',
             padding: '0 20px',
             scrollbarWidth: 'none',
             msOverflowStyle: 'none',
+            borderBottomLeftRadius: 28,
+            borderBottomRightRadius: 28,
           }}
         >
           <div style={{ paddingBottom: 20 }}>{children}</div>
         </div>
       </div>
+
+      <style>{`
+        [role='dialog'] *:focus,
+        [role='dialog'] *:focus-visible {
+          outline: none !important;
+          -webkit-tap-highlight-color: transparent;
+        }
+        [role='dialog'] button:focus-visible,
+        [role='dialog'] input:focus-visible,
+        [role='dialog'] textarea:focus-visible {
+          box-shadow:
+            0 0 0 2px var(--surface, #17151C),
+            0 0 0 4px rgba(231, 194, 122, 0.55);
+          border-radius: inherit;
+        }
+        [role='dialog']::-webkit-scrollbar { display: none; }
+        [role='dialog'] > div::-webkit-scrollbar { display: none; }
+      `}</style>
     </>
   );
 }
