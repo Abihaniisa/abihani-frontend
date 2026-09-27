@@ -1,12 +1,3 @@
-/* ABIHANI — Post
- * Fixing: BUG-06 (seller avatar and name open profile)
- * Wirings:
- *   - onSellerTap wired to InfoCard avatar, name, and swipe-to-profile
- *   - cardOpen state passed to Rail so it lifts when card expands
- *   - onLike, onSave, onComment, onShare, onMore pass through to Rail
- *   - onFollow passes through to Rail
- *   - onBuy passes through to InfoCard */
-
 import { useRef, useState } from 'react';
 import Carousel from './Carousel';
 import Rail from './Rail';
@@ -56,14 +47,18 @@ export default function Post({
     active: boolean;
     startX: number;
     startY: number;
+    startTime: number;
     onLastImage: boolean;
     dragging: boolean;
+    axis: 'none' | 'x' | 'y';
   }>({
     active: false,
     startX: 0,
     startY: 0,
+    startTime: 0,
     onLastImage: true,
     dragging: false,
+    axis: 'none',
   });
 
   const lastTapRef = useRef(0);
@@ -102,8 +97,10 @@ export default function Post({
       active: true,
       startX: t.clientX,
       startY: t.clientY,
+      startTime: Date.now(),
       onLastImage: isCarouselAtEnd(),
       dragging: false,
+      axis: 'none',
     };
   }
 
@@ -113,12 +110,30 @@ export default function Post({
     const t = e.touches[0];
     const dx = t.clientX - s.startX;
     const dy = t.clientY - s.startY;
-    if (Math.abs(dy) > 30 && !s.dragging) {
+    const absX = Math.abs(dx);
+    const absY = Math.abs(dy);
+
+    /* Lock the axis on the first meaningful movement. Once the
+     * user commits to one direction, the other is ignored for
+     * the rest of the gesture. This is what makes the swipe
+     * feel light instead of muddy. */
+    if (s.axis === 'none') {
+      if (absX > 8 || absY > 8) {
+        s.axis = absX > absY ? 'x' : 'y';
+      } else {
+        return;
+      }
+    }
+
+    if (s.axis === 'y') {
+      /* Vertical drag — release the handler and let the browser
+       * scroll the feed normally. No interference. */
       s.active = false;
       setDragX(0);
       return;
     }
-    if (dx < -20 && s.onLastImage) {
+
+    if (s.axis === 'x' && dx < 0 && s.onLastImage) {
       s.dragging = true;
       const clamped = Math.max(dx, -window.innerWidth);
       setDragX(clamped);
@@ -135,12 +150,18 @@ export default function Post({
     }
     const wasDragging = s.dragging;
     const finalX = dragX;
+    const elapsed = Math.max(Date.now() - s.startTime, 1);
+    const velocity = Math.abs(finalX) / elapsed; // px per ms
     s.active = false;
     s.dragging = false;
+    s.axis = 'none';
 
     if (wasDragging) {
-      const threshold = -window.innerWidth * 0.25;
-      if (finalX < threshold) {
+      /* Light flick: 15% of screen width OR a fast flick
+       * (velocity >= 0.5 px/ms) counted on its own. */
+      const distanceThreshold = -window.innerWidth * 0.15;
+      const flicked = finalX < distanceThreshold || velocity >= 0.5;
+      if (flicked) {
         setDragX(-window.innerWidth);
         window.setTimeout(() => {
           onSwipeToProfile();
@@ -161,7 +182,6 @@ export default function Post({
         position: 'relative',
         height: '100dvh',
         scrollSnapAlign: 'start',
-        scrollSnapStop: 'always',
         overflow: 'hidden',
         background: '#000',
         flexShrink: 0,
