@@ -12,6 +12,7 @@ import Create from './screens/Create';
 import Settings from './screens/Settings';
 import Admin from './screens/Admin';
 import Support from './screens/Support';
+import PostViewer from './screens/PostViewer';
 import BottomNav, { type NavKey } from './components/common/BottomNav';
 import FeedChrome from './components/common/FeedChrome';
 
@@ -35,6 +36,7 @@ export default function Router() {
   const [stack, setStack] = useState<Route[]>([]);
   const [feedTab, setFeedTab] = useState<'foryou' | 'following'>('foryou');
   const [email, setEmail] = useState('');
+  const [sellerViewerId, setSellerViewerId] = useState<string | null>(null);
   const [recoveryCode] = useState(() =>
     Math.floor(10000000 + Math.random() * 90000000).toString(),
   );
@@ -55,7 +57,8 @@ export default function Router() {
     support: null,
   };
 
-  const showNav = navForRoute[route] !== null;
+  const viewerOpen = sellerViewerId !== null;
+  const showNav = navForRoute[route] !== null && !viewerOpen;
 
   function push(next: Route) {
     setStack((s) => [...s, route]);
@@ -123,7 +126,12 @@ export default function Router() {
           />
         );
       case 'feed':
-        return <Feed tab={feedTab} />;
+        return (
+          <Feed
+            tab={feedTab}
+            onOpenSeller={(sellerId) => setSellerViewerId(sellerId)}
+          />
+        );
       case 'discover':
         return <Discover />;
       case 'orders':
@@ -157,7 +165,7 @@ export default function Router() {
         overflow: 'hidden',
       }}
     >
-      {route === 'feed' && (
+      {route === 'feed' && !viewerOpen && (
         <FeedChrome
           tab={feedTab}
           onTabChange={setFeedTab}
@@ -181,6 +189,13 @@ export default function Router() {
         <BottomNav
           current={navForRoute[route] as NavKey}
           onNavigate={goTab}
+        />
+      )}
+
+      {viewerOpen && (
+        <PostViewer
+          sellerId={sellerViewerId as string}
+          onClose={() => setSellerViewerId(null)}
         />
       )}
     </div>
