@@ -1,3 +1,8 @@
+/* ABIHANI — Info Card
+ * Fixing: BUG-04 (expand fires once), BUG-05 (chevron not blocked)
+ * Wirings: none. This is a UI component. It reports open state
+ * to the parent via onOpenChange so the Rail can lift. */
+
 import { useState } from 'react';
 import type { Post } from '../../types/post.types';
 
@@ -16,7 +21,8 @@ export default function InfoCard({
 }: InfoCardProps) {
   const [open, setOpenState] = useState(false);
 
-  function setOpen(next: boolean) {
+  function toggleOpen() {
+    const next = !open;
     setOpenState(next);
     onOpenChange?.(next);
   }
@@ -42,24 +48,24 @@ export default function InfoCard({
       }}
     >
       <div
-        onClick={() => setOpen(!open)}
+        onClick={toggleOpen}
         style={{
           display: 'flex',
           alignItems: 'center',
           gap: 10,
-          padding: '9px 12px',
+          padding: '7px 11px',
           cursor: 'pointer',
           userSelect: 'none',
         }}
       >
-        <span
+        <div
           onClick={(e) => {
             e.stopPropagation();
             onSellerTap();
           }}
           style={{
-            width: 36,
-            height: 36,
+            width: 34,
+            height: 34,
             borderRadius: '50%',
             backgroundImage: `url('${post.seller.avatarUrl ?? ''}')`,
             backgroundSize: 'cover',
@@ -85,7 +91,7 @@ export default function InfoCard({
           >
             <span
               style={{
-                fontSize: 15.5,
+                fontSize: 15,
                 fontWeight: 700,
                 color: 'var(--bone)',
                 letterSpacing: '-0.3px',
@@ -120,7 +126,7 @@ export default function InfoCard({
           </div>
           <div
             style={{
-              fontSize: 12.5,
+              fontSize: 12,
               fontWeight: 500,
               color: 'var(--bone-dim)',
               letterSpacing: '-0.1px',
@@ -144,8 +150,8 @@ export default function InfoCard({
         >
           <svg
             viewBox="0 0 24 24"
-            width={16}
-            height={16}
+            width={15}
+            height={15}
             fill="none"
             stroke="currentColor"
             strokeWidth={2.4}
@@ -159,15 +165,19 @@ export default function InfoCard({
 
       <div
         style={{
-          maxHeight: open ? 320 : 0,
+          maxHeight: open ? 280 : 0,
           overflow: 'hidden',
-          transition: 'max-height .4s var(--ease)',
+          transition: 'max-height .35s var(--ease)',
         }}
       >
         <div
           style={{
-            padding: '12px 12px 13px',
+            padding: '11px 12px 12px',
             borderTop: '1px solid rgba(245, 240, 230, 0.10)',
+            maxHeight: 280,
+            overflowY: 'auto',
+            scrollbarWidth: 'none',
+            msOverflowStyle: 'none',
           }}
         >
           <p
@@ -175,7 +185,7 @@ export default function InfoCard({
               fontSize: 12.5,
               color: 'var(--bone-dim)',
               lineHeight: 1.5,
-              marginBottom: 12,
+              marginBottom: 10,
             }}
           >
             {post.description}
@@ -193,7 +203,7 @@ export default function InfoCard({
                 color: 'var(--gold)',
                 background: 'rgba(231, 194, 122, 0.16)',
                 border: '1px solid rgba(231, 194, 122, 0.4)',
-                marginBottom: 12,
+                marginBottom: 10,
               }}
             >
               Only {post.stock} left
@@ -212,7 +222,7 @@ export default function InfoCard({
                 color: '#FF5C78',
                 background: 'rgba(196, 30, 58, 0.14)',
                 border: '1px solid rgba(196, 30, 58, 0.45)',
-                marginBottom: 12,
+                marginBottom: 10,
               }}
             >
               Sold out
@@ -266,7 +276,8 @@ export default function InfoCard({
                   : 'none',
                 whiteSpace: 'nowrap',
                 flexShrink: 0,
-                transition: 'transform .15s var(--spring), filter .15s var(--ease)',
+                transition:
+                  'transform .15s var(--spring), filter .15s var(--ease)',
               }}
             >
               {outOfStock ? 'Sold out' : 'Buy now'}
