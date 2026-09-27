@@ -1,8 +1,3 @@
-/* ABIHANI — Info Card
- * Fixing: BUG-04 (expand fires once), BUG-05 (chevron not blocked)
- * Wirings: none. This is a UI component. It reports open state
- * to the parent via onOpenChange so the Rail can lift. */
-
 import { useState } from 'react';
 import type { Post } from '../../types/post.types';
 
@@ -21,7 +16,7 @@ export default function InfoCard({
 }: InfoCardProps) {
   const [open, setOpenState] = useState(false);
 
-  function toggleOpen() {
+  function toggle() {
     const next = !open;
     setOpenState(next);
     onOpenChange?.(next);
@@ -48,24 +43,20 @@ export default function InfoCard({
       }}
     >
       <div
-        onClick={toggleOpen}
         style={{
           display: 'flex',
           alignItems: 'center',
           gap: 10,
-          padding: '7px 11px',
-          cursor: 'pointer',
-          userSelect: 'none',
+          padding: '9px 12px',
         }}
       >
-        <div
-          onClick={(e) => {
-            e.stopPropagation();
-            onSellerTap();
-          }}
+        <button
+          type="button"
+          onClick={onSellerTap}
+          aria-label={post.seller.name}
           style={{
-            width: 34,
-            height: 34,
+            width: 36,
+            height: 36,
             borderRadius: '50%',
             backgroundImage: `url('${post.seller.avatarUrl ?? ''}')`,
             backgroundSize: 'cover',
@@ -73,111 +64,126 @@ export default function InfoCard({
             flexShrink: 0,
             border: '1.5px solid rgba(245, 240, 230, 0.16)',
             cursor: 'pointer',
+            padding: 0,
           }}
         />
-        <div style={{ flex: 1, minWidth: 0 }}>
-          <div
-            onClick={(e) => {
-              e.stopPropagation();
-              onSellerTap();
-            }}
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: 5,
-              marginBottom: 2,
-              cursor: 'pointer',
-            }}
-          >
+
+        <button
+          type="button"
+          onClick={toggle}
+          aria-expanded={open}
+          style={{
+            flex: 1,
+            minWidth: 0,
+            display: 'flex',
+            alignItems: 'center',
+            gap: 10,
+            background: 'none',
+            border: 'none',
+            padding: 0,
+            textAlign: 'left',
+            fontFamily: 'inherit',
+            cursor: 'pointer',
+            userSelect: 'none',
+            color: 'inherit',
+          }}
+        >
+          <span style={{ flex: 1, minWidth: 0 }}>
             <span
               style={{
-                fontSize: 15,
-                fontWeight: 700,
-                color: 'var(--bone)',
-                letterSpacing: '-0.3px',
+                display: 'flex',
+                alignItems: 'center',
+                gap: 5,
+                marginBottom: 2,
+              }}
+            >
+              <span
+                style={{
+                  fontSize: 15.5,
+                  fontWeight: 700,
+                  color: 'var(--bone)',
+                  letterSpacing: '-0.3px',
+                  whiteSpace: 'nowrap',
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                }}
+              >
+                {post.seller.name}
+              </span>
+              {post.seller.verified && (
+                <span
+                  aria-hidden="true"
+                  style={{
+                    width: 15,
+                    height: 15,
+                    borderRadius: '50%',
+                    background: 'var(--crimson)',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    flexShrink: 0,
+                    color: '#FFF',
+                    fontSize: 9,
+                    fontWeight: 900,
+                    lineHeight: 1,
+                  }}
+                >
+                  ✓
+                </span>
+              )}
+            </span>
+            <span
+              style={{
+                display: 'block',
+                fontSize: 12.5,
+                fontWeight: 500,
+                color: 'var(--bone-dim)',
+                letterSpacing: '-0.1px',
                 whiteSpace: 'nowrap',
                 overflow: 'hidden',
                 textOverflow: 'ellipsis',
               }}
             >
-              {post.seller.name}
+              {post.title}
             </span>
-            {post.seller.verified && (
-              <span
-                aria-hidden="true"
-                style={{
-                  width: 15,
-                  height: 15,
-                  borderRadius: '50%',
-                  background: 'var(--crimson)',
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  flexShrink: 0,
-                  color: '#FFF',
-                  fontSize: 9,
-                  fontWeight: 900,
-                  lineHeight: 1,
-                }}
-              >
-                ✓
-              </span>
-            )}
-          </div>
-          <div
+          </span>
+          <span
+            aria-hidden="true"
             style={{
-              fontSize: 12,
-              fontWeight: 500,
               color: 'var(--bone-dim)',
-              letterSpacing: '-0.1px',
-              whiteSpace: 'nowrap',
-              overflow: 'hidden',
-              textOverflow: 'ellipsis',
+              flexShrink: 0,
+              transform: open ? 'rotate(180deg)' : 'rotate(0deg)',
+              transition: 'transform .3s var(--ease)',
+              display: 'flex',
             }}
           >
-            {post.title}
-          </div>
-        </div>
-        <span
-          aria-hidden="true"
-          style={{
-            color: 'var(--bone-dim)',
-            flexShrink: 0,
-            transform: open ? 'rotate(180deg)' : 'rotate(0deg)',
-            transition: 'transform .3s var(--ease)',
-            display: 'flex',
-          }}
-        >
-          <svg
-            viewBox="0 0 24 24"
-            width={15}
-            height={15}
-            fill="none"
-            stroke="currentColor"
-            strokeWidth={2.4}
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          >
-            <polyline points="6 9 12 15 18 9" />
-          </svg>
-        </span>
+            <svg
+              viewBox="0 0 24 24"
+              width={16}
+              height={16}
+              fill="none"
+              stroke="currentColor"
+              strokeWidth={2.4}
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <polyline points="6 9 12 15 18 9" />
+            </svg>
+          </span>
+        </button>
       </div>
 
       <div
         style={{
-          maxHeight: open ? 280 : 0,
+          maxHeight: open ? 320 : 0,
           overflow: 'hidden',
-          transition: 'max-height .35s var(--ease)',
+          transition: 'max-height .4s var(--ease)',
         }}
       >
         <div
           style={{
-            padding: '11px 12px 12px',
+            padding: '12px 12px 13px',
             borderTop: '1px solid rgba(245, 240, 230, 0.10)',
-            maxHeight: 280,
-            overflowY: 'auto',
-            scrollbarWidth: 'none',
-            msOverflowStyle: 'none',
           }}
         >
           <p
@@ -185,7 +191,7 @@ export default function InfoCard({
               fontSize: 12.5,
               color: 'var(--bone-dim)',
               lineHeight: 1.5,
-              marginBottom: 10,
+              marginBottom: 12,
             }}
           >
             {post.description}
@@ -203,7 +209,7 @@ export default function InfoCard({
                 color: 'var(--gold)',
                 background: 'rgba(231, 194, 122, 0.16)',
                 border: '1px solid rgba(231, 194, 122, 0.4)',
-                marginBottom: 10,
+                marginBottom: 12,
               }}
             >
               Only {post.stock} left
@@ -222,7 +228,7 @@ export default function InfoCard({
                 color: '#FF5C78',
                 background: 'rgba(196, 30, 58, 0.14)',
                 border: '1px solid rgba(196, 30, 58, 0.45)',
-                marginBottom: 10,
+                marginBottom: 12,
               }}
             >
               Sold out
@@ -250,8 +256,7 @@ export default function InfoCard({
 
             <button
               type="button"
-              onClick={(e) => {
-                e.stopPropagation();
+              onClick={() => {
                 if (canBuy) onBuy();
               }}
               disabled={!canBuy}
@@ -276,8 +281,7 @@ export default function InfoCard({
                   : 'none',
                 whiteSpace: 'nowrap',
                 flexShrink: 0,
-                transition:
-                  'transform .15s var(--spring), filter .15s var(--ease)',
+                transition: 'transform .15s var(--spring), filter .15s var(--ease)',
               }}
             >
               {outOfStock ? 'Sold out' : 'Buy now'}
