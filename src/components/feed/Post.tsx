@@ -1,3 +1,12 @@
+/* ABIHANI — Post
+ * Fixing: BUG-06 (seller avatar and name open profile)
+ * Wirings:
+ *   - onSellerTap wired to InfoCard avatar, name, and swipe-to-profile
+ *   - cardOpen state passed to Rail so it lifts when card expands
+ *   - onLike, onSave, onComment, onShare, onMore pass through to Rail
+ *   - onFollow passes through to Rail
+ *   - onBuy passes through to InfoCard */
+
 import { useRef, useState } from 'react';
 import Carousel from './Carousel';
 import Rail from './Rail';
